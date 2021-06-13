@@ -70,10 +70,21 @@ class Country(models.Model):
 class Competence(TimeStampedModel):
     name = models.CharField(max_length=255)
 
+    class Meta:
+        """Meta definition for Competence."""
+
+        verbose_name = 'Competence'
+        verbose_name_plural = 'Competencies'
+
 
 class Occupation(TimeStampedModel):
     name = models.CharField(max_length=255)
 
+    class Meta:
+        """Meta definition for Occupation."""
+
+        verbose_name = 'Occupation'
+        verbose_name_plural = 'Occupations'
 
 ID_TYPES = (
     ('alien_id', 'Alien ID'),
@@ -103,18 +114,18 @@ class Profile:
                                 blank=True, null=True)
     id_type = models.CharField(max_length=100, choices=ID_TYPES)
     id_number = models.CharField(max_length=255)
-
+    cv = models.FileField(upload_to='uploads/%Y/%m/%d/', black=True)
     active = models.BooleanField(default=False)
     available = models.BooleanField(default=False)
     note = models.TextField(blank=True)
     APPLICATION_STATUS = models.CharField(max_length=255, choices=APPLICATION_STATUS)
     competencies = models.ManyToManyField(Competence, blank=True, on_delete=models.SET_NULL)
+    recommendations = models.ManyToManyThr
 
-
-# class ProfileRecommendation(TimeStampedModel):
-#     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
-#     comment = models.TextField()
-#     author = models.ForeignKey(User, on_delete=models.CASCADE)
+class ProfileRecommendation(TimeStampedModel):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    comment = models.TextField()
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
 
 class Outbreak(TimeStampedModel):
     name = models.CharField(max_length=255)
