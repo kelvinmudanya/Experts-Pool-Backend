@@ -109,12 +109,13 @@ class Profile(TimeStampedModel):
                                 blank=True, null=True)
     id_type = models.CharField(max_length=100, choices=ID_TYPES)
     id_number = models.CharField(max_length=255)
+    region_of_residence = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True)
     # cv = models.FileField(upload_to='uploads/%Y/%m/%d/', black=True)
     cv = models.TextField()
     active = models.BooleanField(default=False)
     available = models.BooleanField(default=False)
     note = models.TextField(blank=True)
-    APPLICATION_STATUS = models.CharField(max_length=255, choices=APPLICATION_STATUS)
+    application_status = models.CharField(max_length=255, choices=APPLICATION_STATUS)
     competencies = models.ManyToManyField(Competence, blank=True)
 
 

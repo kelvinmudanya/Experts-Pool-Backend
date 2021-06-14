@@ -5,13 +5,13 @@ from core.views import CountryViewSet, RegionViewSet, CompetenceViewSet, Occupat
 
 core_router = DefaultRouter()
 core_router.register(r"country", CountryViewSet)
-core_router.register(r"country", RegionViewSet)
-core_router.register(r"country", CompetenceViewSet)
-core_router.register(r"country", OccupationViewSet)
-core_router.register(r"country", ProfileViewSet)
-core_router.register(r"country", ProfileRecommendationViewSet)
-core_router.register(r"country", OutbreakViewSet)
-core_router.register(r"country", ProfileDeploymentsViewSet)
+core_router.register(r"region", RegionViewSet)
+core_router.register(r"competence", CompetenceViewSet)
+core_router.register(r"occupation", OccupationViewSet)
+core_router.register(r"profile", ProfileViewSet)
+core_router.register(r"recommendation", ProfileRecommendationViewSet)
+core_router.register(r"outbreak", OutbreakViewSet)
+core_router.register(r"deployment", ProfileDeploymentsViewSet)
 url_patterns = core_router.urls
 url_patterns += [
     # path("request-otp/", views.request_otp, name="request_otp"),
