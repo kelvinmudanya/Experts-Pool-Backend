@@ -1,4 +1,9 @@
+from django.contrib.auth.models import AbstractUser
+from django.core.validators import RegexValidator
 from django.db import models
+
+phone_validator = RegexValidator(
+    r'^\+?[0-9- ]{8,15}$', "Enter a valid phone number.")
 
 
 class TimeStampedModel(models.Model):
@@ -22,8 +27,8 @@ class User(AbstractUser):
 
 
 APPLICATION_STATUS = (
-    ('pending_approval', 'Pending Approval')
-    ('approved', 'Approved')
+    ('pending_approval', 'Pending Approval'),
+    ('approved', 'Approved'),
     ('rejected', 'Rejected')
 )
 
@@ -47,7 +52,7 @@ class Country(models.Model):
 
 class Region(TimeStampedModel):
     name = models.CharField(max_length=255)
-    country = models.ForeignKey(Country)
+    country = models.ForeignKey(Country, on_delete=models.CASCADE)
 
 
 class Competence(TimeStampedModel):
@@ -78,13 +83,19 @@ ID_TYPES = (
     ('passport', 'Passport'),
 )
 
+GENDER_TYPES = (
+    ('F', 'Female'),
+    ('M', 'Male'),
+    ('T', 'Transgender'),
+    ('O', 'Other'),
+)
+
 
 class Profile(TimeStampedModel):
     first_name = models.CharField(max_length=30)
     middle_name = models.CharField(max_length=30, blank=True, null=True)
     last_name = models.CharField(max_length=30)
     gender = models.CharField(choices=GENDER_TYPES, max_length=1)
-    religion = models.CharField(choices=RELIGIONS, max_length=30)
     occupation = models.ForeignKey(Occupation, on_delete=models.SET_NULL,
                                    blank=True, null=True)
 
@@ -113,13 +124,6 @@ class ProfileRecommendation(TimeStampedModel):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='recommendations')
 
 
-class ProfileDeployments(TimeStampedModel):
-    profile = models.ForeignKey(Profile)
-    outbreak = models.ForeignKey(Outbreak)
-    start_date = models.DateField()
-    end_date = models.DateField(blank=True)
-
-
 OUTBREAK_SEVERITY = (
     ('minor', 'Minor'),
     ('medium', 'Medium'),
@@ -135,3 +139,10 @@ class Outbreak(TimeStampedModel):
     start_date = models.DateField()
     end_date = models.DateField(blank=True)
     affected_regions = models.ManyToManyField(Region)
+
+
+class ProfileDeployment(TimeStampedModel):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    outbreak = models.ForeignKey(Outbreak, on_delete=models.CASCADE)
+    start_date = models.DateField()
+    end_date = models.DateField(blank=True)
