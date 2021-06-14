@@ -111,7 +111,7 @@ class Profile(TimeStampedModel):
     id_number = models.CharField(max_length=255)
     region_of_residence = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True)
     # cv = models.FileField(upload_to='uploads/%Y/%m/%d/', black=True)
-    cv = models.TextField()
+    cv = models.TextField(blank=True)
     active = models.BooleanField(default=False)
     available = models.BooleanField(default=False)
     note = models.TextField(blank=True)
