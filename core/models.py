@@ -20,28 +20,6 @@ class User(AbstractUser):
     staff_number = models.CharField(max_length=30, unique=True,
                                     blank=True, null=True)
 
-    id_number = models.CharField(max_length=30, blank=True, null=True)
-
-
-class UserOTP(TimeStampedModel):
-    """A user's OTP token."""
-
-    user = models.OneToOneField(User, on_delete=models.CASCADE,
-                                related_name="otp")
-    otp = models.CharField(max_length=10, blank=True, null=True)
-    # To prevent replay attacks
-    used = models.BooleanField(default=False)
-
-    class Meta:
-        """Meta definition for UserOTP."""
-
-        verbose_name = 'User OTP'
-        verbose_name_plural = 'User OTPs'
-
-    def __str__(self):
-        """Unicode representation of UserOTP."""
-        return f"{self.user}'s OTP"
-
 
 APPLICATION_STATUS = (
     ('pending_approval', 'Pending Approval')
@@ -67,6 +45,11 @@ class Country(models.Model):
         return self.name
 
 
+class Region(TimeStampedModel):
+    name = models.CharField(max_length=255)
+    country = models.ForeignKey(Country)
+
+
 class Competence(TimeStampedModel):
     name = models.CharField(max_length=255)
 
@@ -86,6 +69,7 @@ class Occupation(TimeStampedModel):
         verbose_name = 'Occupation'
         verbose_name_plural = 'Occupations'
 
+
 ID_TYPES = (
     ('alien_id', 'Alien ID'),
     ('birth_cert', 'Birth Certificate'),
@@ -95,7 +79,7 @@ ID_TYPES = (
 )
 
 
-class Profile:
+class Profile(TimeStampedModel):
     first_name = models.CharField(max_length=30)
     middle_name = models.CharField(max_length=30, blank=True, null=True)
     last_name = models.CharField(max_length=30)
@@ -114,20 +98,40 @@ class Profile:
                                 blank=True, null=True)
     id_type = models.CharField(max_length=100, choices=ID_TYPES)
     id_number = models.CharField(max_length=255)
-    cv = models.FileField(upload_to='uploads/%Y/%m/%d/', black=True)
+    # cv = models.FileField(upload_to='uploads/%Y/%m/%d/', black=True)
+    cv = models.TextField()
     active = models.BooleanField(default=False)
     available = models.BooleanField(default=False)
     note = models.TextField(blank=True)
     APPLICATION_STATUS = models.CharField(max_length=255, choices=APPLICATION_STATUS)
     competencies = models.ManyToManyField(Competence, blank=True, on_delete=models.SET_NULL)
-    recommendations = models.ManyToManyThr
+
 
 class ProfileRecommendation(TimeStampedModel):
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='recommendations')
     comment = models.TextField()
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='recommendations')
+
+
+class ProfileDeployments(TimeStampedModel):
+    profile = models.ForeignKey(Profile)
+    outbreak = models.ForeignKey(Outbreak)
+    start_date = models.DateField()
+    end_date = models.DateField(blank=True)
+
+
+OUTBREAK_SEVERITY = (
+    ('minor', 'Minor'),
+    ('medium', 'Medium'),
+    ('severe', 'Severe')
+)
+
 
 class Outbreak(TimeStampedModel):
     name = models.CharField(max_length=255)
     description = models.TextField()
-    competencies = models.ManyToManyField(Competence, blank=True, on_delete=models.CASCADE)
+    competencies = models.ManyToManyField(Competence, blank=True, on_delete=models.CASCADE, related_name="")
+    severity = models.CharField(max_length=255, choices=OUTBREAK_SEVERITY)
+    start_date = models.DateField()
+    end_date = models.DateField(blank=True)
+    affected_regions = models.ManyToManyField(Region)
