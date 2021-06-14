@@ -115,7 +115,7 @@ class Profile(TimeStampedModel):
     available = models.BooleanField(default=False)
     note = models.TextField(blank=True)
     APPLICATION_STATUS = models.CharField(max_length=255, choices=APPLICATION_STATUS)
-    competencies = models.ManyToManyField(Competence, blank=True, on_delete=models.SET_NULL)
+    competencies = models.ManyToManyField(Competence, blank=True)
 
 
 class ProfileRecommendation(TimeStampedModel):
@@ -134,7 +134,7 @@ OUTBREAK_SEVERITY = (
 class Outbreak(TimeStampedModel):
     name = models.CharField(max_length=255)
     description = models.TextField()
-    competencies = models.ManyToManyField(Competence, blank=True, on_delete=models.CASCADE, related_name="")
+    competencies = models.ManyToManyField(Competence, blank=True, related_name="outbreaks")
     severity = models.CharField(max_length=255, choices=OUTBREAK_SEVERITY)
     start_date = models.DateField()
     end_date = models.DateField(blank=True)
