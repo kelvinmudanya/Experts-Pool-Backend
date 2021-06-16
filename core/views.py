@@ -33,8 +33,6 @@ class OccupationViewSet(viewsets.ModelViewSet):
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
-    pagination_class = None
-
 
 class ProfileRecommendationViewSet(viewsets.ModelViewSet):
     queryset = ProfileRecommendation.objects.all()
@@ -45,10 +43,9 @@ class ProfileRecommendationViewSet(viewsets.ModelViewSet):
 class OutbreakViewSet(viewsets.ModelViewSet):
     queryset = Outbreak.objects.all()
     serializer_class = OutbreakSerializer
-    pagination_class = None
 
 
 class ProfileDeploymentsViewSet(viewsets.ModelViewSet):
     queryset = ProfileDeployment.objects.all()
     serializer_class = ProfileDeploymentSerializer
-    pagination_class = None
+

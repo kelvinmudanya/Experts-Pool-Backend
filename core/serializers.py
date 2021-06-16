@@ -11,9 +11,12 @@ class CountrySerializer(serializers.ModelSerializer):
 
 
 class RegionSerializer(serializers.ModelSerializer):
+    country = CountrySerializer(read_only=True)
+    country_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Country.objects.all())
+
     class Meta:
         model = Region
-        fields = '__all__'
+        fields = ['name', 'country', 'country_id']
 
 
 class CompetenceSerializer(serializers.ModelSerializer):
@@ -43,7 +46,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'occupation_id', 'date_of_birth', 'next_of_kin_name', 'next_of_kin_phone',
             'email', 'phone', 'user', 'id_type', 'id_number', 'region_of_residence',
             'region_of_residence_id', 'cv', 'active', 'available', 'note',
-            'application_status', 'competencies',
+            'application_status', 'competencies', 'competencies_list'
         ]
 
     def create(self, validated_data):
@@ -73,9 +76,45 @@ class ProfileRecommendationSerializer(serializers.ModelSerializer):
 
 
 class OutbreakSerializer(serializers.ModelSerializer):
+    competencies = CompetenceSerializer(read_only=True, many=True)
+    competencies_list = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Competence.objects.all(),
+                                                           many=True, )
+    affected_regions = RegionSerializer(read_only=True, many=True)
+    affected_regions_list = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Region.objects.all(),
+                                                               many=True, )
+
     class Meta:
         model = Outbreak
-        fields = '__all__'
+        fields = ['name', 'description', 'competencies', 'competencies_list', 'severity', 'start_date', 'end_date',
+                  'affected_regions', 'affected_regions_list']
+
+    def create(self, validated_data):
+        competencies_list = validated_data.pop('competencies_list', None)
+        affected_regions = validated_data.pop('affected_regions_list', None)
+        outbreak = Outbreak.objects.create(**validated_data)
+        outbreak.save()
+        if affected_regions is not None:
+            for affected_region in affected_regions:
+                outbreak.affected_regions.add(affected_region)
+
+        if competencies_list is not None:
+            for competence in competencies_list:
+                outbreak.competencies.add(competence)
+        return outbreak
+
+    def update(self, instance, validated_data):
+        competencies_list = validated_data.pop('competencies_list', None)
+        affected_regions = validated_data.pop('affected_regions_list', None)
+        outbreak = super().update(instance, **validated_data)
+        outbreak.save()
+        if affected_regions is not None:
+            for affected_region in affected_regions:
+                outbreak.affected_regions.add(affected_region)
+
+        if competencies_list is not None:
+            for competence in competencies_list:
+                outbreak.competencies.add(competence)
+        return outbreak
 
 
 class ProfileDeploymentSerializer(serializers.ModelSerializer):
