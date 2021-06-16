@@ -1,7 +1,9 @@
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import Group
 from rest_framework import serializers
 
 from core.models import Occupation, Country, Region, Competence, Profile, ProfileRecommendation, Outbreak, \
-    ProfileDeployment
+    ProfileDeployment, User
 
 
 class CountrySerializer(serializers.ModelSerializer):
@@ -37,7 +39,9 @@ class ProfileSerializer(serializers.ModelSerializer):
     region_of_residence = RegionSerializer(read_only=True)
     region_of_residence_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Region.objects.all())
     competencies = CompetenceSerializer(read_only=True, many=True)
-    competencies_list = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Competence, many=True)
+    competencies_list = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Competence.objects.all(),
+                                                           many=True)
+    # recommendations = serializers.SerializerMethodField('get_recommendations', many=True, read_only=True)
 
     class Meta:
         model = Profile
@@ -46,12 +50,20 @@ class ProfileSerializer(serializers.ModelSerializer):
             'occupation_id', 'date_of_birth', 'next_of_kin_name', 'next_of_kin_phone',
             'email', 'phone', 'user', 'id_type', 'id_number', 'region_of_residence',
             'region_of_residence_id', 'cv', 'active', 'available', 'note',
-            'application_status', 'competencies', 'competencies_list'
+            'application_status', 'competencies', 'competencies_list',
         ]
+
+    # def get_recommendations(self, obj):
+    #     recommendations = ProfileRecommendationSerializer(ProfileRecommendation.objects.all())
+    #     return recommendations
 
     def create(self, validated_data):
         competencies = validated_data.pop('competencies_list', None)
-        profile = Profile.objects.create(**validated_data)
+        occupation = validated_data.pop('occupation_id')
+        region_of_residence = validated_data.pop('region_of_residence_id')
+
+        profile = Profile.objects.create(occupation=occupation, region_of_residence=region_of_residence,
+                                         **validated_data)
         profile.save()
         if competencies is not None:
             for competence in competencies:
@@ -69,10 +81,70 @@ class ProfileSerializer(serializers.ModelSerializer):
         return
 
 
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ['id', 'name']
+
+
+class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password',
+                                                                            'placeholder': 'Password'})
+    groups = GroupSerializer(read_only=True, many=True)
+    groups_id = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all(),
+                                                   write_only=True, many=True)
+
+    class Meta:
+        model = User
+        fields = ['id', 'first_name', 'last_name', 'username',
+                  'password', 'phone_number', 'groups', 'groups_id', 'staff_number']
+
+    def create(self, validated_data):
+        auth_user = self.context['request'].user
+        groups = validated_data.pop('groups_id')
+
+        phone_number = validated_data.pop('phone_number', None)
+        if phone_number:
+            phone_number = phone_number
+
+        user = User.objects.create_user(phone_number=phone_number,
+                                        **validated_data)
+        for group in groups:
+            user.groups.add(group)
+
+        return user
+
+    def update(self, instance, validated_data):
+        auth_user = self.context['request'].user
+        groups = validated_data.pop('groups_id', None)
+        password = validated_data.pop('password', None)
+        user = super().update(instance, validated_data)
+
+        if password:
+            hashed_password = make_password(password)
+            user.password = hashed_password
+            user.save()
+
+        if groups is not None:
+            user.groups.clear()
+            for group in groups:
+                user.groups.add(group)
+
+        return user
+
+
 class ProfileRecommendationSerializer(serializers.ModelSerializer):
+    author = UserSerializer(read_only=True)
+
     class Meta:
         model = ProfileRecommendation
-        fields = '__all__'
+        fields = ['profile', 'comment', 'author']
+
+    def create(self, validated_data):
+        author = self.context['request'].user
+        recommendation = ProfileRecommendation.objects.create(author=author, **validated_data)
+        recommendation.save()
+        return recommendation
 
 
 class OutbreakSerializer(serializers.ModelSerializer):
