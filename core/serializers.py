@@ -39,55 +39,6 @@ class OccupationSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ProfileSerializer(serializers.ModelSerializer):
-    occupation = OccupationSerializer(read_only=True)
-    occupation_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Occupation.objects.all())
-    region_of_residence = RegionSerializer(read_only=True)
-    region_of_residence_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Region.objects.all())
-    competencies = CompetenceSerializer(read_only=True, many=True)
-    competencies_list = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Competence.objects.all(),
-                                                           many=True)
-
-    # recommendations = serializers.SerializerMethodField('get_recommendations', many=True, read_only=True)
-
-    class Meta:
-        model = Profile
-        fields = [
-            'first_name', 'middle_name', 'last_name', 'gender', 'occupation',
-            'occupation_id', 'date_of_birth', 'next_of_kin_name', 'next_of_kin_phone',
-            'email', 'phone', 'user', 'id_type', 'id_number', 'region_of_residence',
-            'region_of_residence_id', 'cv', 'active', 'available', 'note',
-            'application_status', 'competencies', 'competencies_list',
-        ]
-
-    # def get_recommendations(self, obj):
-    #     recommendations = ProfileRecommendationSerializer(ProfileRecommendation.objects.all())
-    #     return recommendations
-
-    def create(self, validated_data):
-        competencies = validated_data.pop('competencies_list', None)
-        occupation = validated_data.pop('occupation_id')
-        region_of_residence = validated_data.pop('region_of_residence_id')
-
-        profile = Profile.objects.create(occupation=occupation, region_of_residence=region_of_residence,
-                                         **validated_data)
-        profile.save()
-        if competencies is not None:
-            for competence in competencies:
-                profile.competencies.add(competence)
-
-        return profile
-
-    def update(self, instance, validated_data):
-        competencies = validated_data.pop('competencies_list', None)
-        profile = super().update(instance, **validated_data)
-        profile.save()
-        if competencies is not None:
-            for competence in competencies:
-                profile.competencies.add(competence)
-        return
-
-
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
@@ -152,6 +103,51 @@ class ProfileRecommendationSerializer(serializers.ModelSerializer):
         recommendation = ProfileRecommendation.objects.create(author=author, **validated_data)
         recommendation.save()
         return recommendation
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    occupation = OccupationSerializer(read_only=True)
+    occupation_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Occupation.objects.all())
+    region_of_residence = RegionSerializer(read_only=True)
+    region_of_residence_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Region.objects.all())
+    competencies = CompetenceSerializer(read_only=True, many=True)
+    competencies_list = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Competence.objects.all(),
+                                                           many=True)
+
+    recommendations = ProfileRecommendationSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = [
+            'first_name', 'middle_name', 'last_name', 'gender', 'occupation',
+            'occupation_id', 'date_of_birth', 'next_of_kin_name', 'next_of_kin_phone',
+            'email', 'phone', 'user', 'id_type', 'id_number', 'region_of_residence',
+            'region_of_residence_id', 'cv', 'active', 'available', 'note',
+            'application_status', 'competencies', 'competencies_list', 'recommendations'
+        ]
+
+    def create(self, validated_data):
+        competencies = validated_data.pop('competencies_list', None)
+        occupation = validated_data.pop('occupation_id')
+        region_of_residence = validated_data.pop('region_of_residence_id')
+
+        profile = Profile.objects.create(occupation=occupation, region_of_residence=region_of_residence,
+                                         **validated_data)
+        profile.save()
+        if competencies is not None:
+            for competence in competencies:
+                profile.competencies.add(competence)
+
+        return profile
+
+    def update(self, instance, validated_data):
+        competencies = validated_data.pop('competencies_list', None)
+        profile = super().update(instance, **validated_data)
+        profile.save()
+        if competencies is not None:
+            for competence in competencies:
+                profile.competencies.add(competence)
+        return
 
 
 class OutbreakSerializer(serializers.ModelSerializer):
