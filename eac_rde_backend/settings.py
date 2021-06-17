@@ -10,8 +10,6 @@ env_file = os.path.join(BASE_DIR, ".env")
 
 environ.Env.read_env(env_file)
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '$31sb9k0*1-wy+ww#pfi8dv%!!esj+c!m+g%h^_ww@b+*q3t2f'
 
@@ -131,3 +129,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
