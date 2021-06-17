@@ -20,6 +20,12 @@ class RegionSerializer(serializers.ModelSerializer):
         model = Region
         fields = ['name', 'country', 'country_id']
 
+    def create(self, validated_data):
+        country = validated_data.pop('country_id')
+        region = Region.objects.create(country=country, **validated_data)
+        region.save()
+        return region
+
 
 class CompetenceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -41,6 +47,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     competencies = CompetenceSerializer(read_only=True, many=True)
     competencies_list = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Competence.objects.all(),
                                                            many=True)
+
     # recommendations = serializers.SerializerMethodField('get_recommendations', many=True, read_only=True)
 
     class Meta:
