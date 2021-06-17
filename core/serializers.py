@@ -1,6 +1,8 @@
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group
-from rest_framework import serializers
+from rest_framework import serializers, status
+from rest_framework.response import Response
+from rest_framework.validators import UniqueTogetherValidator
 
 from core.models import Occupation, Country, Region, Competence, Profile, ProfileRecommendation, Outbreak, \
     ProfileDeployment, User
@@ -58,7 +60,6 @@ class UserSerializer(serializers.ModelSerializer):
                   'password', 'phone_number', 'groups', 'groups_id', 'staff_number']
 
     def create(self, validated_data):
-        auth_user = self.context['request'].user
         groups = validated_data.pop('groups_id')
 
         phone_number = validated_data.pop('phone_number', None)
@@ -73,7 +74,6 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
     def update(self, instance, validated_data):
-        auth_user = self.context['request'].user
         groups = validated_data.pop('groups_id', None)
         password = validated_data.pop('password', None)
         user = super().update(instance, validated_data)
@@ -123,15 +123,33 @@ class ProfileSerializer(serializers.ModelSerializer):
             'occupation_id', 'date_of_birth', 'next_of_kin_name', 'next_of_kin_phone',
             'email', 'phone', 'user', 'id_type', 'id_number', 'region_of_residence',
             'region_of_residence_id', 'cv', 'active', 'available', 'note',
-            'application_status', 'competencies', 'competencies_list', 'recommendations'
+            'application_status', 'competencies', 'competencies_list', 'recommendations',
         ]
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Profile.objects.all(),
+                fields=['id_type', 'id_number']
+            )
+        ]
+
+    def validate(self, data):
+        user = self.context['request'].user
+        if not user.is_staff:
+            profiles = Profile.objects.filter(user=user)
+            if len(profiles) > 0:
+                raise serializers.ValidationError('This user already has a profile')
+
+        return super().validate(data)
 
     def create(self, validated_data):
         competencies = validated_data.pop('competencies_list', None)
         occupation = validated_data.pop('occupation_id')
         region_of_residence = validated_data.pop('region_of_residence_id')
+        auth_user = None
+        user = self.context['request'].user
 
-        profile = Profile.objects.create(occupation=occupation, region_of_residence=region_of_residence,
+
+        profile = Profile.objects.create(occupation=occupation, user=user, region_of_residence=region_of_residence,
                                          **validated_data)
         profile.save()
         if competencies is not None:

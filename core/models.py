@@ -27,11 +27,6 @@ class User(AbstractUser):
                                     blank=True, null=True)
 
 
-APPLICATION_STATUS = (
-    ('pending_approval', 'Pending Approval'),
-    ('approved', 'Approved'),
-    ('rejected', 'Rejected')
-)
 
 
 class Country(models.Model):
@@ -91,10 +86,16 @@ GENDER_TYPES = (
     ('O', 'Other'),
 )
 
+APPLICATION_STATUS = (
+    ('pending_approval', 'Pending Approval'),
+    ('approved', 'Approved'),
+    ('rejected', 'Rejected')
+)
+
 
 class Profile(TimeStampedModel):
     first_name = models.CharField(max_length=30)
-    middle_name = models.CharField(max_length=30, blank=True, null=True)
+    middle_name = models.CharField(max_length=30, null=True)
     last_name = models.CharField(max_length=30)
     gender = models.CharField(choices=GENDER_TYPES, max_length=1)
     occupation = models.ForeignKey(Occupation, on_delete=models.SET_NULL,
@@ -105,19 +106,29 @@ class Profile(TimeStampedModel):
     next_of_kin_phone = models.CharField(max_length=30)
     email = models.EmailField(blank=True, null=True)
     phone = models.CharField(max_length=20, validators=[phone_validator],
-                             blank=True, null=True)
+                             null=True)
     user = models.OneToOneField(User, on_delete=models.SET_NULL,
-                                blank=True, null=True)
+                                blank=True, null=True, related_name='profile')
     id_type = models.CharField(max_length=100, choices=ID_TYPES)
     id_number = models.CharField(max_length=255)
     region_of_residence = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True)
     # cv = models.FileField(upload_to='uploads/%Y/%m/%d/', black=True)
-    cv = models.TextField(blank=True)
+    cv = models.TextField(null=True)
     active = models.BooleanField(default=False)
     available = models.BooleanField(default=False)
-    note = models.TextField(blank=True)
-    application_status = models.CharField(max_length=255, choices=APPLICATION_STATUS)
-    competencies = models.ManyToManyField(Competence, blank=True)
+    note = models.TextField(null=True)
+    application_status = models.CharField(max_length=255, choices=APPLICATION_STATUS, default='pending_approval')
+    competencies = models.ManyToManyField(Competence, null=True)
+
+    class Meta:
+        """Meta definition for Profile."""
+
+        verbose_name = 'Profile'
+        verbose_name_plural = 'Profiles'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['id_type', 'id_number'], name='unique_id')
+        ]
 
 
 class ProfileRecommendation(TimeStampedModel):
