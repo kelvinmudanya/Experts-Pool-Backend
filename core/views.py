@@ -1,9 +1,11 @@
 from django.contrib.auth.models import Group
 from rest_framework import viewsets, permissions
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from core.models import Country, Region, Competence, Occupation, Outbreak, ProfileDeployment, ProfileRecommendation, \
     Profile, User
-from core.permissions import AnonCreateAndUpdateOwnerOnly, ProfileAuthenticatedCreateAndUpdateOwnerOnly
+from core.permissions import AnonCreateAndUpdateOwnerOnly, ProfileAuthenticatedCreateAndUpdateOwnerOnly, \
+    AnonReadAdminCreate
 from core.serializers import CountrySerializer, RegionSerializer, CompetenceSerializer, OccupationSerializer, \
     OutbreakSerializer, ProfileDeploymentSerializer, ProfileRecommendationSerializer, ProfileSerializer, UserSerializer, \
     GroupSerializer
@@ -13,23 +15,27 @@ class CountryViewSet(viewsets.ModelViewSet):
     queryset = Country.objects.all()
     serializer_class = CountrySerializer
     pagination_class = None
+    permission_classes = [AnonReadAdminCreate]
 
 
 class RegionViewSet(viewsets.ModelViewSet):
     queryset = Region.objects.all()
     serializer_class = RegionSerializer
+    permission_classes = [AnonReadAdminCreate]
     pagination_class = None
 
 
 class CompetenceViewSet(viewsets.ModelViewSet):
     queryset = Competence.objects.all()
     serializer_class = CompetenceSerializer
+    permission_classes = [AnonReadAdminCreate]
     pagination_class = None
 
 
 class OccupationViewSet(viewsets.ModelViewSet):
     queryset = Occupation.objects.all()
     serializer_class = OccupationSerializer
+    permission_classes = [AnonReadAdminCreate]
     pagination_class = None
 
 
@@ -40,7 +46,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         auth_user = self.request.user
-        if auth_user.is_staff:
+        if auth_user.is_staff or auth_user.is_superuser:
             return Profile.objects.all()
         else:
             return Profile.objects.filter(user=auth_user)

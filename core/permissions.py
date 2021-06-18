@@ -24,8 +24,12 @@ class ProfileAuthenticatedCreateAndUpdateOwnerOnly(permissions.BasePermission):
         - allow all actions for staff
     """
 
-    def has_permission(self, request, view):
-        return view.action == 'retrieve' and request.user.is_authenticated
-
     def has_object_permission(self, request, view, obj):
-        return view.action in ['update', 'partial_update'] and obj.user__id == request.user.id or request.user.is_staff
+        return obj.user == request.user or request.user.is_staff or request.user.is_superuser
+
+
+class AnonReadAdminCreate(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return request.user.is_staff or request.user.is_superuser

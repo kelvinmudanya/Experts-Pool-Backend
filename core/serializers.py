@@ -59,6 +59,16 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'first_name', 'last_name', 'username',
                   'password', 'phone_number', 'groups', 'groups_id', 'staff_number']
 
+    def validate(self, data):
+        try:
+            groups = data['groups_id']
+            auth_user = self.context['request'].user
+            if not auth_user.is_staff:
+                # cannot add groups since user is not admin
+                data.pop('groups_id')
+        except KeyError:
+            pass
+
     def create(self, validated_data):
         groups = validated_data.pop('groups_id')
 
@@ -134,7 +144,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         user = self.context['request'].user
-        if not user.is_staff:
+        if not (user.is_staff or user.is_superuser):
             profiles = Profile.objects.filter(user=user)
             if len(profiles) > 0:
                 raise serializers.ValidationError('This user already has a profile')
