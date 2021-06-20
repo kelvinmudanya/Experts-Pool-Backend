@@ -28,6 +28,14 @@ class RegionSerializer(serializers.ModelSerializer):
         region.save()
         return region
 
+    def update(self, instance, validated_data):
+        country = validated_data.pop('country_id')
+
+        region = super().update(instance, **validated_data)
+        region.country = country
+        region.save()
+        return region
+
 
 class CompetenceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -158,7 +166,6 @@ class ProfileSerializer(serializers.ModelSerializer):
         auth_user = None
         user = self.context['request'].user
 
-
         profile = Profile.objects.create(occupation=occupation, user=user, region_of_residence=region_of_residence,
                                          **validated_data)
         profile.save()
@@ -221,6 +228,27 @@ class OutbreakSerializer(serializers.ModelSerializer):
 
 
 class ProfileDeploymentSerializer(serializers.ModelSerializer):
+    profile = ProfileSerializer(read_only=True)
+    profile_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Profile.objects.all())
+    outbreak = OutbreakSerializer(read_only=True)
+    outbreak_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Outbreak.objects.all())
+
     class Meta:
         model = ProfileDeployment
-        fields = '__all__'
+        fields = ['profile', 'outbreak', 'start_date', 'end_date', 'profile_id', 'outbreak_id']
+
+    def create(self, validated_data):
+        profile = validated_data.pop('profile_id')
+        outbreak = validated_data.pop('outbreak_id')
+        deployment = ProfileDeployment.objects.create(profile=profile, outbreak=outbreak, **validated_data)
+        deployment.save()
+        return deployment
+
+    def update(self, instance, validated_data):
+        profile = validated_data.pop('profile_id')
+        outbreak = validated_data.pop('outbreak_id')
+        deployment = super().update(instance, **validated_data)
+        deployment.profile = profile
+        deployment.outbreak = outbreak
+        deployment.save()
+        return deployment
