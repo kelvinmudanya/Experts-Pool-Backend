@@ -20,7 +20,7 @@ class RegionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Region
-        fields = ['name', 'country', 'country_id']
+        fields = ['id', 'name', 'country', 'country_id']
 
     def create(self, validated_data):
         country = validated_data.pop('country_id')
@@ -31,7 +31,7 @@ class RegionSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         country = validated_data.pop('country_id')
 
-        region = super().update(instance, **validated_data)
+        region = super().update(instance, validated_data)
         region.country = country
         region.save()
         return region
@@ -137,7 +137,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = [
-            'first_name', 'middle_name', 'last_name', 'gender', 'occupation',
+            'id', 'first_name', 'middle_name', 'last_name', 'gender', 'occupation',
             'occupation_id', 'date_of_birth', 'next_of_kin_name', 'next_of_kin_phone',
             'email', 'phone', 'user', 'id_type', 'id_number', 'region_of_residence',
             'region_of_residence_id', 'cv', 'active', 'available', 'note',
@@ -177,7 +177,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         competencies = validated_data.pop('competencies_list', None)
-        profile = super().update(instance, **validated_data)
+        profile = super().update(instance, validated_data)
         profile.save()
         if competencies is not None:
             for competence in competencies:
@@ -195,7 +195,7 @@ class OutbreakSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Outbreak
-        fields = ['name', 'description', 'competencies', 'competencies_list', 'severity', 'start_date', 'end_date',
+        fields = ['id', 'name', 'description', 'competencies', 'competencies_list', 'severity', 'start_date', 'end_date',
                   'affected_regions', 'affected_regions_list']
 
     def create(self, validated_data):
@@ -235,7 +235,7 @@ class ProfileDeploymentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProfileDeployment
-        fields = ['profile', 'outbreak', 'start_date', 'end_date', 'profile_id', 'outbreak_id']
+        fields = ['id', 'profile', 'outbreak', 'start_date', 'end_date', 'profile_id', 'outbreak_id']
 
     def create(self, validated_data):
         profile = validated_data.pop('profile_id')
@@ -247,7 +247,7 @@ class ProfileDeploymentSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         profile = validated_data.pop('profile_id')
         outbreak = validated_data.pop('outbreak_id')
-        deployment = super().update(instance, **validated_data)
+        deployment = super().update(instance, validated_data)
         deployment.profile = profile
         deployment.outbreak = outbreak
         deployment.save()
