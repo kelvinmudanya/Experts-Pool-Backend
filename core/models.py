@@ -147,10 +147,10 @@ OUTBREAK_SEVERITY = (
 class Outbreak(TimeStampedModel):
     name = models.CharField(max_length=255)
     description = models.TextField()
-    competencies = models.ManyToManyField(Competence, blank=True, related_name="outbreaks")
+    competencies = models.ManyToManyField(Competence, blank=True, related_name="outbreaks", null=True)
     severity = models.CharField(max_length=255, choices=OUTBREAK_SEVERITY)
     start_date = models.DateField()
-    end_date = models.DateField(blank=True)
+    end_date = models.DateField(null=True)
     affected_regions = models.ManyToManyField(Region)
 
 
@@ -158,4 +158,4 @@ class ProfileDeployment(TimeStampedModel):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     outbreak = models.ForeignKey(Outbreak, on_delete=models.CASCADE)
     start_date = models.DateField()
-    end_date = models.DateField(blank=True)
+    end_date = models.DateField( null=True)
