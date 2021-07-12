@@ -1,7 +1,6 @@
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group
-from rest_framework import serializers, status
-from rest_framework.response import Response
+from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 from core.models import Occupation, Country, Region, Competence, Profile, ProfileRecommendation, Outbreak, \
@@ -9,18 +8,34 @@ from core.models import Occupation, Country, Region, Competence, Profile, Profil
 
 
 class CountrySerializer(serializers.ModelSerializer):
+    value = serializers.SerializerMethodField('get_value',
+                                              read_only=True)
+    label = serializers.SerializerMethodField('get_label',
+                                              read_only=True)
+
     class Meta:
         model = Country
         fields = '__all__'
+
+    def get_value(self, obj):
+        return obj.id
+
+    def get_label(self, obj):
+        return obj.name
 
 
 class RegionSerializer(serializers.ModelSerializer):
     country = CountrySerializer(read_only=True)
     country_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Country.objects.all())
 
+    value = serializers.SerializerMethodField('get_value',
+                                              read_only=True)
+    label = serializers.SerializerMethodField('get_label',
+                                              read_only=True)
+
     class Meta:
         model = Region
-        fields = ['id', 'name', 'country', 'country_id']
+        fields = ['id', 'name', 'country', 'country_id', 'value', 'label']
 
     def create(self, validated_data):
         country = validated_data.pop('country_id')
@@ -36,23 +51,62 @@ class RegionSerializer(serializers.ModelSerializer):
         region.save()
         return region
 
+    def get_value(self, obj):
+        return obj.id
+
+    def get_label(self, obj):
+        return obj.name
+
 
 class CompetenceSerializer(serializers.ModelSerializer):
+    value = serializers.SerializerMethodField('get_value',
+                                              read_only=True)
+    label = serializers.SerializerMethodField('get_label',
+                                              read_only=True)
+
     class Meta:
         model = Competence
         fields = '__all__'
 
+    def get_value(self, obj):
+        return obj.id
+
+    def get_label(self, obj):
+        return obj.name
+
 
 class OccupationSerializer(serializers.ModelSerializer):
+    value = serializers.SerializerMethodField('get_value',
+                                              read_only=True)
+    label = serializers.SerializerMethodField('get_label',
+                                              read_only=True)
+
     class Meta:
         model = Occupation
         fields = '__all__'
 
+    def get_value(self, obj):
+        return obj.id
+
+    def get_label(self, obj):
+        return obj.name
+
 
 class GroupSerializer(serializers.ModelSerializer):
+    value = serializers.SerializerMethodField('get_value',
+                                              read_only=True)
+    label = serializers.SerializerMethodField('get_label',
+                                              read_only=True)
+
     class Meta:
         model = Group
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'value', 'label']
+
+    def get_value(self, obj):
+        return obj.id
+
+    def get_label(self, obj):
+        return obj.name
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -192,11 +246,22 @@ class OutbreakSerializer(serializers.ModelSerializer):
     affected_regions = RegionSerializer(read_only=True, many=True)
     affected_regions_list = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Region.objects.all(),
                                                                many=True, )
+    value = serializers.SerializerMethodField('get_value',
+                                              read_only=True)
+    label = serializers.SerializerMethodField('get_label',
+                                              read_only=True)
 
     class Meta:
         model = Outbreak
-        fields = ['id', 'name', 'description', 'competencies', 'competencies_list', 'severity', 'start_date', 'end_date',
-                  'affected_regions', 'affected_regions_list']
+        fields = ['id', 'name', 'description', 'competencies', 'competencies_list', 'severity', 'start_date',
+                  'end_date',
+                  'affected_regions', 'affected_regions_list', 'value', 'label']
+
+    def get_value(self, obj):
+        return obj.id
+
+    def get_label(self, obj):
+        return obj.name
 
     def create(self, validated_data):
         competencies_list = validated_data.pop('competencies_list', None)
