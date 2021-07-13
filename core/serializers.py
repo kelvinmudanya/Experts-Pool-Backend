@@ -253,6 +253,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         profile = super().update(instance, validated_data)
         profile.save()
         if competencies is not None:
+            profile.competencies.clear()
             for competence in competencies:
                 profile.competencies.add(competence)
         return
@@ -309,10 +310,12 @@ class OutbreakSerializer(serializers.ModelSerializer):
         outbreak = super().update(instance, validated_data)
         outbreak.save()
         if affected_regions is not None:
+            outbreak.affected_regions.clear()
             for affected_region in affected_regions:
                 outbreak.affected_regions.add(affected_region)
 
         if competencies_list is not None:
+            outbreak.competencies.clear()
             for competence in competencies_list:
                 outbreak.competencies.add(competence)
         return outbreak
