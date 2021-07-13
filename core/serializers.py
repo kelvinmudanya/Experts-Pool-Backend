@@ -285,11 +285,11 @@ class OutbreakSerializer(serializers.ModelSerializer):
         outbreak.save()
         if affected_regions is not None:
             for affected_region in affected_regions:
-                outbreak.affected_regions.add(int(affected_region))
+                outbreak.affected_regions.add(affected_region)
 
         if competencies_list is not None:
             for competence in competencies_list:
-                outbreak.competencies.add(int(competence))
+                outbreak.competencies.add(competence)
         return outbreak
 
     def update(self, instance, validated_data):
@@ -299,11 +299,11 @@ class OutbreakSerializer(serializers.ModelSerializer):
         outbreak.save()
         if affected_regions is not None:
             for affected_region in affected_regions:
-                outbreak.affected_regions.add(int(affected_region))
+                outbreak.affected_regions.add(affected_region)
 
         if competencies_list is not None:
             for competence in competencies_list:
-                outbreak.competencies.add(int(competence))
+                outbreak.competencies.add(competence)
         return outbreak
 
 
