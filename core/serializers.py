@@ -256,7 +256,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             profile.competencies.clear()
             for competence in competencies:
                 profile.competencies.add(competence)
-        return
+        return profile
 
 
 class OutbreakSerializer(serializers.ModelSerializer):
