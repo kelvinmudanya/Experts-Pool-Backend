@@ -295,7 +295,7 @@ class OutbreakSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         competencies_list = validated_data.pop('competencies', None)
         affected_regions = validated_data.pop('affected_regions', None)
-        outbreak = super().update(instance, **validated_data)
+        outbreak = super().update(instance, validated_data)
         outbreak.save()
         if affected_regions is not None:
             for affected_region in affected_regions:
