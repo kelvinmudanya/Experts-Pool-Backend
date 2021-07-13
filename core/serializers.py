@@ -225,11 +225,22 @@ class ProfileSerializer(serializers.ModelSerializer):
         competencies = validated_data.pop('competencies', None)
         occupation = validated_data.pop('occupation_id')
         region_of_residence = validated_data.pop('region_of_residence_id')
-        auth_user = None
-        user = self.context['request'].user
+        user = validated_data.pop('user', None)
 
-        profile = Profile.objects.create(occupation=occupation, user=user, region_of_residence=region_of_residence,
-                                         **validated_data)
+        user_account = self.context['request'].user
+
+        if not (user_account.is_staff or user_account.is_superuser):
+            profile = Profile.objects.create(occupation=occupation, region_of_residence=region_of_residence,
+                                             **validated_data)
+        else:
+            if user is not None:
+                profile = Profile.objects.create(occupation=occupation, user=user,
+                                                 region_of_residence=region_of_residence,
+                                                 **validated_data)
+            else:
+                profile = Profile.objects.create(occupation=occupation,
+                                                 region_of_residence=region_of_residence,
+                                                 **validated_data)
         profile.save()
         if competencies is not None:
             for competence in competencies:
