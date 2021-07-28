@@ -22,6 +22,7 @@ class RegionViewSet(viewsets.ModelViewSet):
     queryset = Region.objects.all()
     serializer_class = RegionSerializer
     permission_classes = [AnonReadAdminCreate]
+    filterset_fields = {'country': ['exact']}
     pagination_class = None
 
 
