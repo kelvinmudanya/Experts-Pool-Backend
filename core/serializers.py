@@ -1,7 +1,6 @@
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group
-from rest_framework import serializers, status
-from rest_framework.response import Response
+from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
 from core.models import Occupation, Country, Region, Competence, Profile, ProfileRecommendation, Outbreak, \
@@ -9,18 +8,34 @@ from core.models import Occupation, Country, Region, Competence, Profile, Profil
 
 
 class CountrySerializer(serializers.ModelSerializer):
+    value = serializers.SerializerMethodField('get_value',
+                                              read_only=True)
+    label = serializers.SerializerMethodField('get_label',
+                                              read_only=True)
+
     class Meta:
         model = Country
         fields = '__all__'
+
+    def get_value(self, obj):
+        return obj.id
+
+    def get_label(self, obj):
+        return obj.name
 
 
 class RegionSerializer(serializers.ModelSerializer):
     country = CountrySerializer(read_only=True)
     country_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Country.objects.all())
 
+    value = serializers.SerializerMethodField('get_value',
+                                              read_only=True)
+    label = serializers.SerializerMethodField('get_label',
+                                              read_only=True)
+
     class Meta:
         model = Region
-        fields = ['id', 'name', 'country', 'country_id']
+        fields = ['id', 'name', 'country', 'country_id', 'value', 'label']
 
     def create(self, validated_data):
         country = validated_data.pop('country_id')
@@ -36,36 +51,79 @@ class RegionSerializer(serializers.ModelSerializer):
         region.save()
         return region
 
+    def get_value(self, obj):
+        return obj.id
+
+    def get_label(self, obj):
+        return obj.name
+
 
 class CompetenceSerializer(serializers.ModelSerializer):
+    value = serializers.SerializerMethodField('get_value',
+                                              read_only=True)
+    label = serializers.SerializerMethodField('get_label',
+                                              read_only=True)
+
     class Meta:
         model = Competence
         fields = '__all__'
 
+    def get_value(self, obj):
+        return obj.id
+
+    def get_label(self, obj):
+        return obj.name
+
 
 class OccupationSerializer(serializers.ModelSerializer):
+    value = serializers.SerializerMethodField('get_value',
+                                              read_only=True)
+    label = serializers.SerializerMethodField('get_label',
+                                              read_only=True)
+
     class Meta:
         model = Occupation
         fields = '__all__'
 
+    def get_value(self, obj):
+        return obj.id
+
+    def get_label(self, obj):
+        return obj.name
+
 
 class GroupSerializer(serializers.ModelSerializer):
+    value = serializers.SerializerMethodField('get_value',
+                                              read_only=True)
+    label = serializers.SerializerMethodField('get_label',
+                                              read_only=True)
+
     class Meta:
         model = Group
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'value', 'label']
+
+    def get_value(self, obj):
+        return obj.id
+
+    def get_label(self, obj):
+        return obj.name
 
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password',
                                                                             'placeholder': 'Password'})
-    groups = GroupSerializer(read_only=True, many=True)
-    groups_id = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all(),
-                                                   write_only=True, many=True)
+    groups_objects = serializers.SerializerMethodField('get_groups_objects',
+                                                       read_only=True)
+    groups = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all(),
+                                                many=True)
 
     class Meta:
         model = User
         fields = ['id', 'first_name', 'last_name', 'username',
-                  'password', 'phone_number', 'groups', 'groups_id', 'staff_number']
+                  'password', 'phone_number', 'groups', 'groups_objects', 'staff_number']
+
+    def get_groups_objects(self, obj):
+        return GroupSerializer(obj.groups, many=True).data
 
     def validate(self, data):
         try:
@@ -78,7 +136,7 @@ class UserSerializer(serializers.ModelSerializer):
             pass
 
     def create(self, validated_data):
-        groups = validated_data.pop('groups_id')
+        groups = validated_data.pop('groups')
 
         phone_number = validated_data.pop('phone_number', None)
         if phone_number:
@@ -92,7 +150,7 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
     def update(self, instance, validated_data):
-        groups = validated_data.pop('groups_id', None)
+        groups = validated_data.pop('groups', None)
         password = validated_data.pop('password', None)
         user = super().update(instance, validated_data)
 
@@ -128,9 +186,10 @@ class ProfileSerializer(serializers.ModelSerializer):
     occupation_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Occupation.objects.all())
     region_of_residence = RegionSerializer(read_only=True)
     region_of_residence_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Region.objects.all())
-    competencies = CompetenceSerializer(read_only=True, many=True)
-    competencies_list = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Competence.objects.all(),
-                                                           many=True)
+    competencies_objects = serializers.SerializerMethodField('get_competencies_objects',
+                                                             read_only=True)
+    competencies = serializers.PrimaryKeyRelatedField(queryset=Competence.objects.all(),
+                                                      many=True)
 
     recommendations = ProfileRecommendationSerializer(many=True, read_only=True)
 
@@ -141,7 +200,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'occupation_id', 'date_of_birth', 'next_of_kin_name', 'next_of_kin_phone',
             'email', 'phone', 'user', 'id_type', 'id_number', 'region_of_residence',
             'region_of_residence_id', 'cv', 'active', 'available', 'note',
-            'application_status', 'competencies', 'competencies_list', 'recommendations',
+            'application_status', 'competencies', 'competencies_objects', 'recommendations',
         ]
         validators = [
             UniqueTogetherValidator(
@@ -149,6 +208,9 @@ class ProfileSerializer(serializers.ModelSerializer):
                 fields=['id_type', 'id_number']
             )
         ]
+
+    def get_competencies_objects(self, obj):
+        return CompetenceSerializer(obj.competencies, many=True).data
 
     def validate(self, data):
         user = self.context['request'].user
@@ -160,14 +222,25 @@ class ProfileSerializer(serializers.ModelSerializer):
         return super().validate(data)
 
     def create(self, validated_data):
-        competencies = validated_data.pop('competencies_list', None)
+        competencies = validated_data.pop('competencies', None)
         occupation = validated_data.pop('occupation_id')
         region_of_residence = validated_data.pop('region_of_residence_id')
-        auth_user = None
-        user = self.context['request'].user
+        user = validated_data.pop('user', None)
 
-        profile = Profile.objects.create(occupation=occupation, user=user, region_of_residence=region_of_residence,
-                                         **validated_data)
+        user_account = self.context['request'].user
+
+        if not (user_account.is_staff or user_account.is_superuser):
+            profile = Profile.objects.create(occupation=occupation, region_of_residence=region_of_residence,
+                                             **validated_data)
+        else:
+            if user is not None:
+                profile = Profile.objects.create(occupation=occupation, user=user,
+                                                 region_of_residence=region_of_residence,
+                                                 **validated_data)
+            else:
+                profile = Profile.objects.create(occupation=occupation,
+                                                 region_of_residence=region_of_residence,
+                                                 **validated_data)
         profile.save()
         if competencies is not None:
             for competence in competencies:
@@ -180,27 +253,46 @@ class ProfileSerializer(serializers.ModelSerializer):
         profile = super().update(instance, validated_data)
         profile.save()
         if competencies is not None:
+            profile.competencies.clear()
             for competence in competencies:
                 profile.competencies.add(competence)
-        return
+        return profile
 
 
 class OutbreakSerializer(serializers.ModelSerializer):
-    competencies = CompetenceSerializer(read_only=True, many=True)
-    competencies_list = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Competence.objects.all(),
-                                                           many=True, )
-    affected_regions = RegionSerializer(read_only=True, many=True)
-    affected_regions_list = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Region.objects.all(),
-                                                               many=True, )
+    competencies_objects = serializers.SerializerMethodField('get_competencies_objects',
+                                                             read_only=True)
+    competencies = serializers.PrimaryKeyRelatedField(queryset=Competence.objects.all(),
+                                                      many=True)
+    affected_regions_objects = serializers.SerializerMethodField('get_affected_regions_objects', read_only=True)
+    affected_regions = serializers.PrimaryKeyRelatedField(queryset=Region.objects.all(),
+                                                          many=True)
+    value = serializers.SerializerMethodField('get_value',
+                                              read_only=True)
+    label = serializers.SerializerMethodField('get_label',
+                                              read_only=True)
 
     class Meta:
         model = Outbreak
-        fields = ['id', 'name', 'description', 'competencies', 'competencies_list', 'severity', 'start_date', 'end_date',
-                  'affected_regions', 'affected_regions_list']
+        fields = ['id', 'name', 'description', 'competencies', 'competencies_objects', 'severity',
+                  'start_date',
+                  'end_date', 'affected_regions', 'affected_regions_objects', 'value', 'label']
+
+    def get_value(self, obj):
+        return obj.id
+
+    def get_label(self, obj):
+        return obj.name
+
+    def get_competencies_objects(self, obj):
+        return CompetenceSerializer(obj.competencies, many=True).data
+
+    def get_affected_regions_objects(self, obj):
+        return RegionSerializer(obj.affected_regions, many=True).data
 
     def create(self, validated_data):
-        competencies_list = validated_data.pop('competencies_list', None)
-        affected_regions = validated_data.pop('affected_regions_list', None)
+        competencies_list = validated_data.pop('competencies', None)
+        affected_regions = validated_data.pop('affected_regions', None)
         outbreak = Outbreak.objects.create(**validated_data)
         outbreak.save()
         if affected_regions is not None:
@@ -213,15 +305,17 @@ class OutbreakSerializer(serializers.ModelSerializer):
         return outbreak
 
     def update(self, instance, validated_data):
-        competencies_list = validated_data.pop('competencies_list', None)
-        affected_regions = validated_data.pop('affected_regions_list', None)
-        outbreak = super().update(instance, **validated_data)
+        competencies_list = validated_data.pop('competencies', None)
+        affected_regions = validated_data.pop('affected_regions', None)
+        outbreak = super().update(instance, validated_data)
         outbreak.save()
         if affected_regions is not None:
+            outbreak.affected_regions.clear()
             for affected_region in affected_regions:
                 outbreak.affected_regions.add(affected_region)
 
         if competencies_list is not None:
+            outbreak.competencies.clear()
             for competence in competencies_list:
                 outbreak.competencies.add(competence)
         return outbreak
