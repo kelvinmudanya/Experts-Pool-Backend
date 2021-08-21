@@ -1,7 +1,9 @@
+from django.urls import path
 from rest_framework.routers import DefaultRouter
 
 from core.views import CountryViewSet, RegionViewSet, CompetenceViewSet, OccupationViewSet, ProfileViewSet, \
-    ProfileRecommendationViewSet, OutbreakViewSet, ProfileDeploymentsViewSet, UserViewSet, GroupViewSet
+    ProfileRecommendationViewSet, OutbreakViewSet, ProfileDeploymentsViewSet, UserViewSet, GroupViewSet, \
+     suggest_rdes
 
 core_router = DefaultRouter()
 core_router.register(r"country", CountryViewSet)
@@ -17,4 +19,5 @@ core_router.register(r"user-groups", GroupViewSet)
 url_patterns = core_router.urls
 url_patterns += [
     # path("request-otp/", views.request_otp, name="request_otp"),
+    path("suggest_rdes/", suggest_rdes, name="suggest_rdes")
 ]

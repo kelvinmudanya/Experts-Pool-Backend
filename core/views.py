@@ -1,11 +1,11 @@
 from django.contrib.auth.models import Group
-from rest_framework import viewsets, permissions
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework import viewsets, permissions, decorators
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from core.models import Country, Region, Competence, Occupation, Outbreak, ProfileDeployment, ProfileRecommendation, \
     Profile, User
-from core.permissions import AnonCreateAndUpdateOwnerOnly, ProfileAuthenticatedCreateAndUpdateOwnerOnly, \
-    AnonReadAdminCreate
+from core.permissions import AnonCreateAndUpdateOwnerOnly, AnonReadAdminCreate
 from core.serializers import CountrySerializer, RegionSerializer, CompetenceSerializer, OccupationSerializer, \
     OutbreakSerializer, ProfileDeploymentSerializer, ProfileRecommendationSerializer, ProfileSerializer, UserSerializer, \
     GroupSerializer
@@ -44,6 +44,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
+    # filterset_fields = {'country': ['exact']}
 
     def get_queryset(self):
         auth_user = self.request.user
@@ -52,6 +53,56 @@ class ProfileViewSet(viewsets.ModelViewSet):
         else:
             return Profile.objects.filter(user=auth_user)
 
+@decorators.api_view(["POST"])
+def suggest_rdes(request):
+    """Suggest RDEs Based on Competencies. pass competencies=[id1, id2] """
+    try:
+        competencies = request.data['competencies']
+    except KeyError:
+        competencies = []
+
+    if competencies == []:
+        suggested_profiles = Profile.objects.all()
+    else:
+        suggested_profiles = Profile.objects.filter(competencies__in=competencies)
+    return Response(ProfileSerializer(suggested_profiles, many=True).data)
+
+# class RdeSuggestionViewSet(viewsets.ModelViewSet):
+#     queryset = Profile.objects.all()
+#     serializer_class = ProfileSerializer
+#
+#     # @action(detail=True, methods=['post'])
+#     # def retrieve(self, request, *args, **kwargs):
+#     #     pass
+#     #
+#     # @action(detail=True, methods=['patch'])
+#     # def partial_update(self, request, *args, **kwargs):
+#     #     pass
+#     #
+#     # @action(detail=True, methods=['put'])
+#     # def update(self, request, *args, **kwargs):
+#     #     pass
+#     #
+#     # @action(detail=True, methods=['delete'])
+#     # def delete(self, request, *args, **kwargs):
+#     #     pass
+#
+#     @action(detail=False, methods=['post'])
+#     def suggest_rde_list(self, request):
+#         try:
+#             competencies = request.data['competencies']
+#         except KeyError:
+#             competencies = []
+#         suggested_profiles = Profile.objects.filter(competencies__in=competencies)
+#
+#         ## adding pagination
+#         # page = self.paginate_queryset(recent_users)
+#         # if page is not None:
+#         #     serializer = self.get_serializer(page, many=True)
+#         #     return self.get_paginated_response(serializer.data)
+#         serializer = self.get_serializer(suggested_profiles, many=True)
+#         return Response(serializer.data)
+#
 
 class ProfileRecommendationViewSet(viewsets.ModelViewSet):
     queryset = ProfileRecommendation.objects.all()

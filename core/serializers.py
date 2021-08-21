@@ -109,6 +109,9 @@ class GroupSerializer(serializers.ModelSerializer):
         return obj.name
 
 
+
+
+
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password',
                                                                             'placeholder': 'Password'})
@@ -125,24 +128,22 @@ class UserSerializer(serializers.ModelSerializer):
     def get_groups_objects(self, obj):
         return GroupSerializer(obj.groups, many=True).data
 
-    def validate(self, data):
-        try:
-            groups = data['groups_id']
-            auth_user = self.context['request'].user
-            if not auth_user.is_staff:
-                # cannot add groups since user is not admin
-                data.pop('groups_id')
-        except KeyError:
-            pass
-
     def create(self, validated_data):
         groups = validated_data.pop('groups')
+        try:
+            staff_number = validated_data.pop('staff_number')
+        except:
+            staff_number = ''
+        if not self.context['request'].user.is_staff:
+            # cannot add groups since user is not admin
+            groups = []
+            staff_number = ''
 
         phone_number = validated_data.pop('phone_number', None)
         if phone_number:
             phone_number = phone_number
 
-        user = User.objects.create_user(phone_number=phone_number,
+        user = User.objects.create_user(phone_number=phone_number, staff_number=staff_number,
                                         **validated_data)
         for group in groups:
             user.groups.add(group)
@@ -152,8 +153,16 @@ class UserSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         groups = validated_data.pop('groups', None)
         password = validated_data.pop('password', None)
-        user = super().update(instance, validated_data)
 
+        try:
+            staff_number = validated_data.pop('staff_number')
+        except KeyError:
+            pass
+        if not self.context['request'].user.is_staff:
+            # cannot add groups since user is not admin
+            groups = None
+
+        user = super().update(instance, validated_data)
         if password:
             hashed_password = make_password(password)
             user.password = hashed_password
