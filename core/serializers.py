@@ -130,10 +130,10 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         groups = validated_data.pop('groups')
-        try:
-            staff_number = validated_data.pop('staff_number')
-        except:
-            staff_number = ''
+        # try:
+        #     staff_number = validated_data.pop('staff_number')
+        # except:
+        #     staff_number = ''
         if not self.context['request'].user.is_staff:
             # cannot add groups since user is not admin
             groups = []
@@ -143,7 +143,7 @@ class UserSerializer(serializers.ModelSerializer):
         if phone_number:
             phone_number = phone_number
 
-        user = User.objects.create_user(phone_number=phone_number, staff_number=staff_number,
+        user = User.objects.create_user(phone_number=phone_number,
                                         **validated_data)
         for group in groups:
             user.groups.add(group)
