@@ -28,7 +28,6 @@ class User(AbstractUser):
 
 
 
-
 class Country(models.Model):
     """Model definition for Country."""
 
@@ -88,7 +87,8 @@ GENDER_TYPES = (
 
 APPLICATION_STATUS = (
     ('pending_approval', 'Pending Approval'),
-    ('approved', 'Approved'),
+    ('approved_by_partner_state', 'Approved By Partner State'),
+    ('approval_complete', 'Approval Complete'),
     ('rejected', 'Rejected')
 )
 

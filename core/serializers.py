@@ -211,6 +211,9 @@ class ProfileSerializer(serializers.ModelSerializer):
             'region_of_residence_id', 'cv', 'active', 'available', 'note',
             'application_status', 'competencies', 'competencies_objects', 'recommendations',
         ]
+        extra_kwargs = {
+            'cv': {'write_only': True}
+        }
         validators = [
             UniqueTogetherValidator(
                 queryset=Profile.objects.all(),
