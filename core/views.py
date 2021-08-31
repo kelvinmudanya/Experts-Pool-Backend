@@ -1,6 +1,5 @@
 from django.contrib.auth.models import Group
 from rest_framework import viewsets, permissions, decorators
-from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from core.models import Country, Region, Competence, Occupation, Outbreak, ProfileDeployment, ProfileRecommendation, \
@@ -8,7 +7,7 @@ from core.models import Country, Region, Competence, Occupation, Outbreak, Profi
 from core.permissions import AnonCreateAndUpdateOwnerOnly, AnonReadAdminCreate
 from core.serializers import CountrySerializer, RegionSerializer, CompetenceSerializer, OccupationSerializer, \
     OutbreakSerializer, ProfileDeploymentSerializer, ProfileRecommendationSerializer, ProfileSerializer, UserSerializer, \
-    GroupSerializer
+    GroupSerializer, OutbreakOptionsSerializer
 
 
 class CountryViewSet(viewsets.ModelViewSet):
@@ -44,6 +43,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
+
     # filterset_fields = {'country': ['exact']}
 
     def get_queryset(self):
@@ -52,6 +52,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
             return Profile.objects.all()
         else:
             return Profile.objects.filter(user=auth_user)
+
 
 @decorators.api_view(["POST"])
 def suggest_rdes(request):
@@ -66,6 +67,13 @@ def suggest_rdes(request):
     else:
         suggested_profiles = Profile.objects.filter(competencies__in=competencies)
     return Response(ProfileSerializer(suggested_profiles, many=True).data)
+
+
+@decorators.api_view(["GET"])
+def get_outbreak_options(request):
+    """ get outbreak options in label value pairs """
+    return Response(OutbreakOptionsSerializer(Outbreak.objects.all(), many=True).data)
+
 
 # class RdeSuggestionViewSet(viewsets.ModelViewSet):
 #     queryset = Profile.objects.all()

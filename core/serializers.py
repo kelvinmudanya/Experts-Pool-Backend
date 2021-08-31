@@ -109,9 +109,6 @@ class GroupSerializer(serializers.ModelSerializer):
         return obj.name
 
 
-
-
-
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password',
                                                                             'placeholder': 'Password'})
@@ -331,6 +328,29 @@ class OutbreakSerializer(serializers.ModelSerializer):
             for competence in competencies_list:
                 outbreak.competencies.add(competence)
         return outbreak
+
+
+class OutbreakOptionsSerializer(serializers.ModelSerializer):
+    value = serializers.SerializerMethodField('get_value',
+                                              read_only=True)
+    label = serializers.SerializerMethodField('get_label',
+                                              read_only=True)
+
+    class Meta:
+        model = Outbreak
+        fields = ['value', 'label']
+
+    def get_value(self, obj):
+        return obj.id
+
+    def get_label(self, obj):
+        return obj.name
+
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass
 
 
 class ProfileDeploymentSerializer(serializers.ModelSerializer):
