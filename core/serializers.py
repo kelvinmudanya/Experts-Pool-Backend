@@ -199,13 +199,19 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     recommendations = ProfileRecommendationSerializer(many=True, read_only=True)
 
+    cv_upload_status = serializers.SerializerMethodField('get_cv_upload_status',
+                                                         read_only=True)
+
+    def get_cv_upload_status(self, obj):
+        return False if obj.cv == '' else False
+
     class Meta:
         model = Profile
         fields = [
             'id', 'first_name', 'middle_name', 'last_name', 'gender', 'occupation',
             'occupation_id', 'date_of_birth', 'next_of_kin_name', 'next_of_kin_phone',
             'email', 'phone', 'user', 'id_type', 'id_number', 'region_of_residence',
-            'region_of_residence_id', 'cv', 'active', 'available', 'note',
+            'region_of_residence_id', 'cv', 'cv_upload_status', 'active', 'available', 'note',
             'application_status', 'competencies', 'competencies_objects', 'recommendations',
         ]
         extra_kwargs = {
