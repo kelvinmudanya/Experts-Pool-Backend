@@ -187,6 +187,21 @@ class ProfileRecommendationSerializer(serializers.ModelSerializer):
         return recommendation
 
 
+class ProfileCVSerializer(serializers.ModelSerializer):
+
+    cv_upload_status = serializers.SerializerMethodField('get_cv_upload_status',
+                                                         read_only=True)
+
+    def get_cv_upload_status(self, obj):
+        return False if obj.cv == '' else False
+
+    class Meta:
+        model = Profile
+        fields = [
+           'cv', 'cv_upload_status']
+
+
+
 class ProfileSerializer(serializers.ModelSerializer):
     occupation = OccupationSerializer(read_only=True)
     occupation_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Occupation.objects.all())

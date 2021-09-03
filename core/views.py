@@ -1,5 +1,6 @@
 from django.contrib.auth.models import Group
 from rest_framework import viewsets, permissions, decorators
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
 from core.models import Country, Region, Competence, Occupation, Outbreak, ProfileDeployment, ProfileRecommendation, \
@@ -7,7 +8,7 @@ from core.models import Country, Region, Competence, Occupation, Outbreak, Profi
 from core.permissions import AnonCreateAndUpdateOwnerOnly, AnonReadAdminCreate
 from core.serializers import CountrySerializer, RegionSerializer, CompetenceSerializer, OccupationSerializer, \
     OutbreakSerializer, ProfileDeploymentSerializer, ProfileRecommendationSerializer, ProfileSerializer, UserSerializer, \
-    GroupSerializer, OutbreakOptionsSerializer
+    GroupSerializer, OutbreakOptionsSerializer, ProfileCVSerializer
 
 
 class CountryViewSet(viewsets.ModelViewSet):
@@ -37,6 +38,28 @@ class OccupationViewSet(viewsets.ModelViewSet):
     serializer_class = OccupationSerializer
     permission_classes = [AnonReadAdminCreate]
     pagination_class = None
+
+
+class ProfileCVViewSet(viewsets.ViewSet):
+    def retrieve(self, request, pk=None):
+        profile = get_object_or_404(Profile.objects.all(), pk=pk)
+        serializer = ProfileCVSerializer(profile)
+        return Response(serializer.data)
+
+    def create(self, request):
+        cv = request.GET.get('cv')
+        profile_id = request.GET.get('profile_id')
+        profile = get_object_or_404(Profile.objects.all(), pk=profile_id)
+        profile.cv(cv=cv).save()
+        serializer = ProfileCVSerializer(profile)
+        return Response(serializer.data)
+
+    def update(self, request, pk=None):
+        cv = request.GET.get('cv')
+        profile = get_object_or_404(Profile.objects.all(), pk=pk)
+        profile.cv(cv=cv).save()
+        serializer = ProfileCVSerializer(profile)
+        return Response(serializer.data)
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
