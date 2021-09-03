@@ -155,7 +155,7 @@ class Outbreak(TimeStampedModel):
 
 
 class ProfileDeployment(TimeStampedModel):
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='deployments')
     outbreak = models.ForeignKey(Outbreak, on_delete=models.CASCADE)
     start_date = models.DateField()
     end_date = models.DateField( null=True)

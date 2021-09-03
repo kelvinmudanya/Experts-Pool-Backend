@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from core.views import CountryViewSet, RegionViewSet, CompetenceViewSet, OccupationViewSet, ProfileViewSet, \
     ProfileRecommendationViewSet, OutbreakViewSet, ProfileDeploymentsViewSet, UserViewSet, GroupViewSet, \
-    suggest_rdes, get_outbreak_options, ProfileCVViewSet
+    suggest_rdes, get_outbreak_options, ProfileCVViewSet, get_profile_deployments
 
 core_router = DefaultRouter()
 core_router.register(r"country", CountryViewSet)
@@ -22,5 +22,6 @@ url_patterns = core_router.urls
 url_patterns += [
     # path("request-otp/", views.request_otp, name="request_otp"),
     path("suggest_rdes/", suggest_rdes, name="suggest_rdes"),
+    path("get_profile_deployments/<profile_id>/", get_profile_deployments, name="get_profile_deployments"),
     path("outbreak_options/", get_outbreak_options, name="get_outbreak_options")
 ]

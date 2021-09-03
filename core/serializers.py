@@ -225,7 +225,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'occupation_id', 'date_of_birth', 'next_of_kin_name', 'next_of_kin_phone',
             'email', 'phone', 'user', 'id_type', 'id_number', 'region_of_residence',
             'region_of_residence_id', 'cv', 'cv_upload_status', 'active', 'available', 'note',
-            'application_status', 'competencies', 'competencies_objects', 'recommendations',
+            'application_status', 'competencies', 'competencies_objects', 'recommendations', 'deployments'
         ]
         extra_kwargs = {
             'cv': {'write_only': True}
@@ -373,14 +373,13 @@ class OutbreakOptionsSerializer(serializers.ModelSerializer):
 
 
 class ProfileDeploymentSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializer(read_only=True)
     profile_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Profile.objects.all())
     outbreak = OutbreakSerializer(read_only=True)
     outbreak_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Outbreak.objects.all())
 
     class Meta:
         model = ProfileDeployment
-        fields = ['id', 'profile', 'outbreak', 'start_date', 'end_date', 'profile_id', 'outbreak_id']
+        fields = ['id', 'outbreak', 'start_date', 'end_date', 'profile_id', 'outbreak_id']
 
     def create(self, validated_data):
         profile = validated_data.pop('profile_id')

@@ -135,6 +135,14 @@ def get_outbreak_options(request):
     return Response(OutbreakOptionsSerializer(Outbreak.objects.all(), many=True).data)
 
 
+@decorators.api_view(["GET"])
+def get_profile_deployments(request, profile_id=None):
+    profile = get_object_or_404(Profile.objects.all(), pk=profile_id)
+    deployments = profile.deployments
+    """ get outbreak options in label value pairs """
+    return Response(ProfileDeploymentSerializer(deployments, many=True).data)
+
+
 # class RdeSuggestionViewSet(viewsets.ModelViewSet):
 #     queryset = Profile.objects.all()
 #     serializer_class = ProfileSerializer
