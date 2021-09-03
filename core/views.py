@@ -41,12 +41,19 @@ class OccupationViewSet(viewsets.ModelViewSet):
 
 
 class ProfileCVViewSet(viewsets.ViewSet):
+
+
     def retrieve(self, request, pk=None):
         profile = get_object_or_404(Profile.objects.all(), pk=pk)
         serializer = ProfileCVSerializer(profile)
         return Response(serializer.data)
 
     def create(self, request):
+        """
+        POST request with the following in the request body\n
+             profile_id\n
+             cv\n
+         """
         cv = request.GET.get('cv')
         profile_id = request.GET.get('profile_id')
         profile = get_object_or_404(Profile.objects.all(), pk=profile_id)
@@ -55,6 +62,10 @@ class ProfileCVViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
     def update(self, request, pk=None):
+        """ put request with the following in the request body\n
+             profile_id\n
+             cv\n
+         """
         cv = request.GET.get('cv')
         profile = get_object_or_404(Profile.objects.all(), pk=pk)
         profile.cv(cv=cv).save()
