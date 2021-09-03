@@ -188,18 +188,16 @@ class ProfileRecommendationSerializer(serializers.ModelSerializer):
 
 
 class ProfileCVSerializer(serializers.ModelSerializer):
-
     cv_upload_status = serializers.SerializerMethodField('get_cv_upload_status',
                                                          read_only=True)
 
     def get_cv_upload_status(self, obj):
-        return False if obj.cv == '' else False
+        return True if obj.cv else False
 
     class Meta:
         model = Profile
         fields = [
-           'cv', 'cv_upload_status']
-
+            'cv', 'cv_upload_status']
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -218,7 +216,7 @@ class ProfileSerializer(serializers.ModelSerializer):
                                                          read_only=True)
 
     def get_cv_upload_status(self, obj):
-        return False if obj.cv == '' else False
+        return True if obj.cv else False
 
     class Meta:
         model = Profile

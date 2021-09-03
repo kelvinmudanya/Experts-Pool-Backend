@@ -1,7 +1,11 @@
+import coreapi
+import coreschema
 from django.contrib.auth.models import Group
 from rest_framework import viewsets, permissions, decorators
+from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
+from rest_framework.schemas import AutoSchema, ManualSchema
 
 from core.models import Country, Region, Competence, Occupation, Outbreak, ProfileDeployment, ProfileRecommendation, \
     Profile, User
@@ -41,34 +45,56 @@ class OccupationViewSet(viewsets.ModelViewSet):
 
 
 class ProfileCVViewSet(viewsets.ViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    schema = ManualSchema(
+        fields=[
+        coreapi.Field(
+            "profile_id",
+            required=True,
+            location="form",
+            schema=coreschema.Integer()
+        ),
+        coreapi.Field(
+            "cv",
+            required=True,
+            location="form",
+            schema=coreschema.String()
+        ),
+    ])
 
+    """
+    retrieve:
+    Return cv for the specified user profile.
+
+    create:
+    Create a cv against a profile
+
+    update:
+    Change A profile's cv
+
+    """
 
     def retrieve(self, request, pk=None):
+
+        """ just pass the normal /id without these details"""
         profile = get_object_or_404(Profile.objects.all(), pk=pk)
         serializer = ProfileCVSerializer(profile)
         return Response(serializer.data)
 
     def create(self, request):
-        """
-        POST request with the following in the request body\n
-             profile_id\n
-             cv\n
-         """
-        cv = request.GET.get('cv')
-        profile_id = request.GET.get('profile_id')
+        cv = request.data['cv']
+        profile_id = request.data['profile_id']
         profile = get_object_or_404(Profile.objects.all(), pk=profile_id)
-        profile.cv(cv=cv).save()
+        profile.cv = cv
+        profile.save()
         serializer = ProfileCVSerializer(profile)
         return Response(serializer.data)
 
     def update(self, request, pk=None):
-        """ put request with the following in the request body\n
-             profile_id\n
-             cv\n
-         """
-        cv = request.GET.get('cv')
+        cv = request.data['cv']
         profile = get_object_or_404(Profile.objects.all(), pk=pk)
-        profile.cv(cv=cv).save()
+        profile.cv = cv
+        profile.save()
         serializer = ProfileCVSerializer(profile)
         return Response(serializer.data)
 
