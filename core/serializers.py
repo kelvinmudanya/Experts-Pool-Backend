@@ -225,7 +225,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'occupation_id', 'date_of_birth', 'next_of_kin_name', 'next_of_kin_phone',
             'email', 'phone', 'user', 'id_type', 'id_number', 'region_of_residence',
             'region_of_residence_id', 'cv', 'cv_upload_status', 'active', 'available', 'note',
-            'application_status', 'competencies', 'competencies_objects', 'recommendations', 'deployments'
+            'application_status', 'competencies', 'competencies_objects', 'recommendations'
         ]
         extra_kwargs = {
             'cv': {'write_only': True}
