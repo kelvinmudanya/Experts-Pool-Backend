@@ -1,18 +1,24 @@
 import coreapi
 import coreschema
 from django.contrib.auth.models import Group
-from rest_framework import viewsets, permissions, decorators
-from rest_framework.decorators import action
+from rest_framework import viewsets, permissions, decorators, serializers, status
 from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.schemas import AutoSchema, ManualSchema
+from rest_framework.schemas import ManualSchema
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from core.models import Country, Region, Competence, Occupation, Outbreak, ProfileDeployment, ProfileRecommendation, \
     Profile, User
-from core.permissions import AnonCreateAndUpdateOwnerOnly, AnonReadAdminCreate
+from core.permissions import AnonCreateAndUpdateOwnerOnly, AnonReadAdminCreate, AdminOnly
 from core.serializers import CountrySerializer, RegionSerializer, CompetenceSerializer, OccupationSerializer, \
     OutbreakSerializer, ProfileDeploymentSerializer, ProfileRecommendationSerializer, ProfileSerializer, UserSerializer, \
-    GroupSerializer, OutbreakOptionsSerializer, ProfileCVSerializer
+    GroupSerializer, OutbreakOptionsSerializer, ProfileCVSerializer, CustomTokenObtainPairSerializer
+
+
+class CustomObtainTokenPairView(TokenObtainPairView):
+    permission_classes = (AllowAny,)
+    serializer_class = CustomTokenObtainPairSerializer
 
 
 class CountryViewSet(viewsets.ModelViewSet):
@@ -48,19 +54,19 @@ class ProfileCVViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
     schema = ManualSchema(
         fields=[
-        coreapi.Field(
-            "profile_id",
-            required=True,
-            location="form",
-            schema=coreschema.Integer()
-        ),
-        coreapi.Field(
-            "cv",
-            required=True,
-            location="form",
-            schema=coreschema.String()
-        ),
-    ])
+            coreapi.Field(
+                "profile_id",
+                required=True,
+                location="form",
+                schema=coreschema.Integer()
+            ),
+            coreapi.Field(
+                "cv",
+                required=True,
+                location="form",
+                schema=coreschema.String()
+            ),
+        ])
 
     """
     retrieve:
@@ -75,7 +81,6 @@ class ProfileCVViewSet(viewsets.ViewSet):
     """
 
     def retrieve(self, request, pk=None):
-
         """ just pass the normal /id without these details"""
         profile = get_object_or_404(Profile.objects.all(), pk=pk)
         serializer = ProfileCVSerializer(profile)
@@ -104,12 +109,17 @@ class ProfileViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    # filterset_fields = {'country': ['exact']}
-
     def get_queryset(self):
         auth_user = self.request.user
         if auth_user.is_staff or auth_user.is_superuser:
-            return Profile.objects.all()
+            if auth_user.attached_region is not None:
+                if auth_user.level == 'eac':
+                    return Profile.objects.all()
+                else:
+                    return Profile.objects.filter(region_of_residence=auth_user.attached_region)
+            else:
+                raise serializers.ValidationError({"generic": "No Region attached to your profile. Consult admin. "})
+
         else:
             return Profile.objects.filter(user=auth_user)
 
@@ -191,10 +201,25 @@ class OutbreakViewSet(viewsets.ModelViewSet):
     queryset = Outbreak.objects.all()
     serializer_class = OutbreakSerializer
 
+    # def retrieve(self, request, pk=None):
+    #     """ get deployments for this outbreak """
+    #     queryset =
+
 
 class ProfileDeploymentsViewSet(viewsets.ModelViewSet):
     queryset = ProfileDeployment.objects.all()
     serializer_class = ProfileDeploymentSerializer
+    permission_classes = [AdminOnly]
+
+    def get_queryset(self):
+        auth_user = self.request.user
+        if auth_user.attached_region is not None:
+            if auth_user.level == 'eac':
+                return ProfileDeployment.objects.all()
+            else:
+                return ProfileDeployment.objects.filter(profile__region_of_residence=auth_user.attached_region)
+        else:
+            raise serializers.ValidationError({"generic": "No Region attached to your profile. Consult admin. "})
 
 
 class UserViewSet(viewsets.ModelViewSet):

@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
-from rest_framework import permissions
 
 phone_validator = RegexValidator(
     r'^\+?[0-9- ]{8,15}$', "Enter a valid phone number.")
@@ -19,13 +18,11 @@ class TimeStampedModel(models.Model):
         abstract = True
 
 
-# Create your models here.
-class User(AbstractUser):
-    phone_number = models.CharField(max_length=20, validators=[
-        phone_validator], blank=True, null=True)
-    staff_number = models.CharField(max_length=30, unique=True,
-                                    blank=True, null=True)
-
+LEVEL = (
+    ('regional', 'Regional'),
+    ('eac', 'EAC'),
+    ('rde', 'RDE')
+)
 
 
 class Country(models.Model):
@@ -49,6 +46,19 @@ class Region(TimeStampedModel):
     name = models.CharField(max_length=255)
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
 
+    def __str__(self):
+        return f"Region {self.name}, in {self.country}"
+
+
+# Create your models here.
+class User(AbstractUser):
+    phone_number = models.CharField(max_length=20, validators=[
+        phone_validator], blank=True, null=True)
+    staff_number = models.CharField(max_length=30, unique=True,
+                                    blank=True, null=True)
+    level = models.CharField(max_length=50, choices=LEVEL, default='rde')
+    attached_region = models.ForeignKey(Region, null=True, on_delete=models.CASCADE)
+
 
 class Competence(TimeStampedModel):
     name = models.CharField(max_length=255)
@@ -59,6 +69,8 @@ class Competence(TimeStampedModel):
         verbose_name = 'Competence'
         verbose_name_plural = 'Competencies'
 
+    def __str__(self):
+        return f"{self.name}"
 
 class Occupation(TimeStampedModel):
     name = models.CharField(max_length=255)
@@ -95,7 +107,7 @@ APPLICATION_STATUS = (
 
 class Profile(TimeStampedModel):
     first_name = models.CharField(max_length=30)
-    middle_name = models.CharField(max_length=30, null=True)
+    middle_name = models.CharField(max_length=30, blank=True)
     last_name = models.CharField(max_length=30)
     gender = models.CharField(choices=GENDER_TYPES, max_length=1)
     occupation = models.ForeignKey(Occupation, on_delete=models.SET_NULL,
@@ -116,9 +128,9 @@ class Profile(TimeStampedModel):
     cv = models.TextField(null=True)
     active = models.BooleanField(default=False)
     available = models.BooleanField(default=False)
-    note = models.TextField(null=True)
+    note = models.TextField(blank=True)
     application_status = models.CharField(max_length=255, choices=APPLICATION_STATUS, default='pending_approval')
-    competencies = models.ManyToManyField(Competence, null=True)
+    competencies = models.ManyToManyField(Competence)
 
     class Meta:
         """Meta definition for Profile."""
@@ -130,7 +142,9 @@ class Profile(TimeStampedModel):
                 fields=['id_type', 'id_number'], name='unique_id')
         ]
 
-
+    def __str__(self):
+        return f"RDE {self.first_name}, {self.last_name} - resides in " \
+               f"{self.region_of_residence}. Application is {self.application_status}"
 class ProfileRecommendation(TimeStampedModel):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='recommendations')
     comment = models.TextField()
@@ -147,15 +161,23 @@ OUTBREAK_SEVERITY = (
 class Outbreak(TimeStampedModel):
     name = models.CharField(max_length=255)
     description = models.TextField()
-    competencies = models.ManyToManyField(Competence, blank=True, related_name="outbreaks", null=True)
+    competencies = models.ManyToManyField(Competence, blank=True, related_name="outbreaks")
     severity = models.CharField(max_length=255, choices=OUTBREAK_SEVERITY)
     start_date = models.DateField()
     end_date = models.DateField(null=True)
     affected_regions = models.ManyToManyField(Region)
 
 
+deployment_status = (
+    ('initiated', 'Initiated'),
+    ('ended', 'Ended')
+)
+
+
 class ProfileDeployment(TimeStampedModel):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='deployments')
     outbreak = models.ForeignKey(Outbreak, on_delete=models.CASCADE)
     start_date = models.DateField()
-    end_date = models.DateField( null=True)
+    end_date = models.DateField(null=True)
+    status = models.CharField(max_length=100, choices=deployment_status, default='initiated')
+    region = models.ForeignKey(Region, on_delete=models.CASCADE, default=1)

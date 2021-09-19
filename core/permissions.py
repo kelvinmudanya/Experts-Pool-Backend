@@ -13,7 +13,8 @@ class AnonCreateAndUpdateOwnerOnly(permissions.BasePermission):
         return view.action == 'create' or request.user and request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
-        return view.action in ['retrieve', 'update', 'partial_update'] and obj.id == request.user.id or request.user.is_staff
+        return view.action in ['retrieve', 'update',
+                               'partial_update'] and obj.id == request.user.id or request.user.is_staff
 
 
 class ProfileAuthenticatedCreateAndUpdateOwnerOnly(permissions.BasePermission):
@@ -32,4 +33,9 @@ class AnonReadAdminCreate(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
             return True
+        return request.user.is_staff or request.user.is_superuser
+
+
+class AdminOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
         return request.user.is_staff or request.user.is_superuser

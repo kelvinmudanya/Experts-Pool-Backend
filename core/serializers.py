@@ -2,6 +2,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from core.models import Occupation, Country, Region, Competence, Profile, ProfileRecommendation, Outbreak, \
     ProfileDeployment, User
@@ -299,12 +300,13 @@ class OutbreakSerializer(serializers.ModelSerializer):
                                               read_only=True)
     label = serializers.SerializerMethodField('get_label',
                                               read_only=True)
+    profiles = ProfileSerializer(many=True, read_only=True)
 
     class Meta:
         model = Outbreak
         fields = ['id', 'name', 'description', 'competencies', 'competencies_objects', 'severity',
                   'start_date',
-                  'end_date', 'affected_regions', 'affected_regions_objects', 'value', 'label']
+                  'end_date', 'affected_regions', 'affected_regions_objects', 'value', 'label', 'profiles']
 
     def get_value(self, obj):
         return obj.id
@@ -379,20 +381,41 @@ class ProfileDeploymentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProfileDeployment
-        fields = ['id', 'outbreak', 'start_date', 'end_date', 'profile_id', 'outbreak_id']
+        fields = ['id', 'outbreak', 'start_date', 'end_date', 'profile_id', 'outbreak_id', 'status', 'region']
 
     def create(self, validated_data):
         profile = validated_data.pop('profile_id')
         outbreak = validated_data.pop('outbreak_id')
-        deployment = ProfileDeployment.objects.create(profile=profile, outbreak=outbreak, **validated_data)
+        region = validated_data.pop('region')
+        if region not in outbreak.affected_regions:
+            raise serializers.ValidationError({'region': 'This region does not exist in the list of affected regions'})
+        deployment = ProfileDeployment.objects.create(profile=profile, region=region, outbreak=outbreak,
+                                                      **validated_data)
+
         deployment.save()
         return deployment
 
     def update(self, instance, validated_data):
         profile = validated_data.pop('profile_id')
         outbreak = validated_data.pop('outbreak_id')
+        region = validated_data.pop('region')
         deployment = super().update(instance, validated_data)
+        if region not in outbreak.affected_regions:
+            raise serializers.ValidationError({'region': 'This region does not exist in the list of affected regions'})
         deployment.profile = profile
         deployment.outbreak = outbreak
         deployment.save()
         return deployment
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['full_name'] = user.get_full_name()
+        token['username'] = user.username
+        token['level'] = user.level
+        token['region'] = f"{user.attached_region.country.name},{user.attached_region.name}"
+        token['roles'] = [group.name for group in user.groups.all()]
+        token['is_superuser'] = user.is_superuser
+        return token
