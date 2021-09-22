@@ -178,6 +178,6 @@ class ProfileDeployment(TimeStampedModel):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='deployments')
     outbreak = models.ForeignKey(Outbreak, on_delete=models.CASCADE)
     start_date = models.DateField()
-    end_date = models.DateField(null=True)
+    end_date = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=100, choices=deployment_status, default='initiated')
     region = models.ForeignKey(Region, on_delete=models.CASCADE, default=1)

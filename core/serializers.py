@@ -208,6 +208,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     region_of_residence_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Region.objects.all())
     competencies_objects = serializers.SerializerMethodField('get_competencies_objects',
                                                              read_only=True)
+
     competencies = serializers.PrimaryKeyRelatedField(queryset=Competence.objects.all(),
                                                       many=True)
 
@@ -215,9 +216,14 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     cv_upload_status = serializers.SerializerMethodField('get_cv_upload_status',
                                                          read_only=True)
+    active_deployments = serializers.SerializerMethodField('get_active_deployments', read_only=True)
 
     def get_cv_upload_status(self, obj):
         return True if obj.cv else False
+
+    def get_active_deployments(self, obj):
+        active_deployments = ProfileDeployment.objects.filter(profile=obj.id, status='initiated').count()
+        return active_deployments
 
     class Meta:
         model = Profile
@@ -226,7 +232,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'occupation_id', 'date_of_birth', 'next_of_kin_name', 'next_of_kin_phone',
             'email', 'phone', 'user', 'id_type', 'id_number', 'region_of_residence',
             'region_of_residence_id', 'cv', 'cv_upload_status', 'active', 'available', 'note',
-            'application_status', 'competencies', 'competencies_objects', 'recommendations'
+            'application_status', 'competencies', 'competencies_objects', 'recommendations', 'active_deployments'
         ]
         extra_kwargs = {
             'cv': {'write_only': True}
@@ -378,16 +384,28 @@ class ProfileDeploymentSerializer(serializers.ModelSerializer):
     profile_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Profile.objects.all())
     outbreak = OutbreakSerializer(read_only=True)
     outbreak_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Outbreak.objects.all())
-
+    region_object = serializers.SerializerMethodField('get_region_object',
+                                                             read_only=True)
     class Meta:
         model = ProfileDeployment
-        fields = ['id', 'outbreak', 'start_date', 'end_date', 'profile_id', 'outbreak_id', 'status', 'region']
+        fields = ['id', 'outbreak', 'start_date', 'end_date', 'profile_id', 'outbreak_id', 'status', 'region', 'region_object']
+
+    def validate(self, data):
+        if self.context['request'].method == 'create':
+            profile = data['profile_id']
+            deployment_count = profile.deployments.filter(status='initiated').count()
+            if deployment_count > 0:
+                raise serializers.ValidationError({'profile_id': 'This RDE already has an active deployment'})
+        return data
+
+    def get_region_object(self, obj):
+        return RegionSerializer(obj.region).data
 
     def create(self, validated_data):
         profile = validated_data.pop('profile_id')
         outbreak = validated_data.pop('outbreak_id')
         region = validated_data.pop('region')
-        if region not in outbreak.affected_regions:
+        if region not in outbreak.affected_regions.all():
             raise serializers.ValidationError({'region': 'This region does not exist in the list of affected regions'})
         deployment = ProfileDeployment.objects.create(profile=profile, region=region, outbreak=outbreak,
                                                       **validated_data)
@@ -396,14 +414,17 @@ class ProfileDeploymentSerializer(serializers.ModelSerializer):
         return deployment
 
     def update(self, instance, validated_data):
-        profile = validated_data.pop('profile_id')
-        outbreak = validated_data.pop('outbreak_id')
-        region = validated_data.pop('region')
+        outbreak = validated_data.pop('outbreak_id', None)
+        region = validated_data.pop('region', None)
         deployment = super().update(instance, validated_data)
-        if region not in outbreak.affected_regions:
-            raise serializers.ValidationError({'region': 'This region does not exist in the list of affected regions'})
-        deployment.profile = profile
-        deployment.outbreak = outbreak
+        if region is not None:
+            if outbreak is None:
+                outbreak = deployment.outbreak
+            else:
+                deployment.outbreak = outbreak
+            if region not in outbreak.affected_regions:
+                raise serializers.ValidationError({'region': 'This region does not exist in the list of affected regions'})
+
         deployment.save()
         return deployment
 
