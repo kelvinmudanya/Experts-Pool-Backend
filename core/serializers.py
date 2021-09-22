@@ -395,7 +395,7 @@ class ProfileDeploymentSerializer(serializers.ModelSerializer):
             profile = data['profile_id']
             deployment_count = profile.deployments.filter(status='initiated').count()
             if deployment_count > 0:
-                raise serializers.ValidationError({'profile_id': 'This RDE already has an active deployment'})
+                raise serializers.ValidationError({'generic': 'This RDE already has an active deployment'})
         return data
 
     def get_region_object(self, obj):
