@@ -57,7 +57,7 @@ class User(AbstractUser):
     staff_number = models.CharField(max_length=30, unique=True,
                                     blank=True, null=True)
     level = models.CharField(max_length=50, choices=LEVEL, default='rde')
-    attached_region = models.ForeignKey(Region, blank=True, on_delete=models.CASCADE)
+    attached_region = models.ForeignKey(Region, blank=True, null=True, on_delete=models.CASCADE)
 
 
 class Competence(TimeStampedModel):
