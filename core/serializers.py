@@ -121,7 +121,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'first_name', 'last_name', 'username',
-                  'password', 'phone_number', 'groups', 'groups_objects', 'staff_number']
+                  'password', 'phone_number', 'groups', 'groups_objects', 'staff_number', 'attached_region_id']
 
     def get_groups_objects(self, obj):
         return GroupSerializer(obj.groups, many=True).data
