@@ -19,7 +19,7 @@ class TimeStampedModel(models.Model):
 
 
 LEVEL = (
-    ('regional', 'Regional'),
+    ('country', 'Country'),
     ('eac', 'EAC'),
     ('rde', 'RDE')
 )

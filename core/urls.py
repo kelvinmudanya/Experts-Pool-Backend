@@ -20,7 +20,7 @@ core_router.register(r"users", UserViewSet)
 core_router.register(r"user-groups", GroupViewSet)
 url_patterns = core_router.urls
 url_patterns += [
-    path("request-otp/", CustomObtainTokenPairView.as_view(), name="request_otp"),
+    path("request-token/", CustomObtainTokenPairView.as_view(), name="request_otp"),
     path("suggest_rdes/", suggest_rdes, name="suggest_rdes"),
     path("get_profile_deployments/<profile_id>/", get_profile_deployments, name="get_profile_deployments"),
     path("outbreak_options/", get_outbreak_options, name="get_outbreak_options")
