@@ -391,7 +391,7 @@ class ProfileDeploymentSerializer(serializers.ModelSerializer):
         fields = ['id', 'outbreak', 'start_date', 'end_date', 'profile_id', 'outbreak_id', 'status', 'region', 'region_object']
 
     def validate(self, data):
-        if self.context['request'].method == 'create':
+        if self.context['request'].method == 'POST':
             profile = data['profile_id']
             deployment_count = profile.deployments.filter(status='initiated').count()
             if deployment_count > 0:
