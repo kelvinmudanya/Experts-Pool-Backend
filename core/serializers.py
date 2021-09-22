@@ -436,7 +436,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['full_name'] = user.get_full_name()
         token['username'] = user.username
         token['level'] = user.level
-        token['region'] = f"{user.attached_region.country.name},{user.attached_region.name}"
+        token['region'] =  f"{user.attached_region.country.name} ,{user.attached_region.name}" if user.attached_region else ""
         token['roles'] = [group.name for group in user.groups.all()]
         token['is_superuser'] = user.is_superuser
         return token
