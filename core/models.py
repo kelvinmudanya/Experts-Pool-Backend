@@ -60,8 +60,15 @@ class User(AbstractUser):
     attached_region = models.ForeignKey(Region, blank=True, null=True, on_delete=models.CASCADE)
 
 
+COMPETENCE_TYPES = (
+    ('language', 'LANGUAGE'),
+    ('work', 'WORK')
+)
+
+
 class Competence(TimeStampedModel):
     name = models.CharField(max_length=255)
+    type = models.CharField(Choices=COMPETENCE_TYPES, max_length=100, default='work')
 
     class Meta:
         """Meta definition for Competence."""
@@ -71,6 +78,7 @@ class Competence(TimeStampedModel):
 
     def __str__(self):
         return f"{self.name}"
+
 
 class Occupation(TimeStampedModel):
     name = models.CharField(max_length=255)
@@ -145,6 +153,8 @@ class Profile(TimeStampedModel):
     def __str__(self):
         return f"RDE {self.first_name}, {self.last_name} - resides in " \
                f"{self.region_of_residence}. Application is {self.application_status}"
+
+
 class ProfileRecommendation(TimeStampedModel):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='recommendations')
     comment = models.TextField()
