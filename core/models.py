@@ -68,7 +68,7 @@ COMPETENCE_TYPES = (
 
 class Competence(TimeStampedModel):
     name = models.CharField(max_length=255)
-    type = models.CharField(Choices=COMPETENCE_TYPES, max_length=100, default='work')
+    type = models.CharField(choices=COMPETENCE_TYPES, max_length=100, default='work')
 
     class Meta:
         """Meta definition for Competence."""
