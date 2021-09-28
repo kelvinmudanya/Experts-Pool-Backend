@@ -268,14 +268,14 @@ class ProfileSerializer(serializers.ModelSerializer):
             profile = Profile.objects.create(occupation=occupation, region_of_residence=region_of_residence,
                                              **validated_data)
         else:
-            if user is not None:
-                profile = Profile.objects.create(occupation=occupation, user=user,
-                                                 region_of_residence=region_of_residence,
-                                                 **validated_data)
-            else:
-                profile = Profile.objects.create(occupation=occupation,
-                                                 region_of_residence=region_of_residence,
-                                                 **validated_data)
+
+            profile = Profile.objects.create(occupation=occupation, user=user_account,
+                                             region_of_residence=region_of_residence,
+                                             **validated_data)
+            # else:
+            #     profile = Profile.objects.create(occupation=occupation,
+            #                                      region_of_residence=region_of_residence,
+            #                                      **validated_data)
         profile.save()
         if competencies is not None:
             for competence in competencies:
