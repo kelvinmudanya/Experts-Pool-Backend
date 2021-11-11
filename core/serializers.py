@@ -5,7 +5,7 @@ from rest_framework.validators import UniqueTogetherValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from core.models import Occupation, Country, Region, Competence, Profile, ProfileRecommendation, Outbreak, \
-    ProfileDeployment, User
+    ProfileDeployment, User, OccupationCategory
 
 
 class CountrySerializer(serializers.ModelSerializer):
@@ -76,14 +76,14 @@ class CompetenceSerializer(serializers.ModelSerializer):
         return obj.name
 
 
-class OccupationSerializer(serializers.ModelSerializer):
+class OccupationCategorySerializer(serializers.ModelSerializer):
     value = serializers.SerializerMethodField('get_value',
                                               read_only=True)
     label = serializers.SerializerMethodField('get_label',
                                               read_only=True)
 
     class Meta:
-        model = Occupation
+        model = OccupationCategory
         fields = '__all__'
 
     def get_value(self, obj):
@@ -91,6 +91,33 @@ class OccupationSerializer(serializers.ModelSerializer):
 
     def get_label(self, obj):
         return obj.name
+
+
+class OccupationSerializer(serializers.ModelSerializer):
+    occupation_category = OccupationCategorySerializer(read_only=True)
+    occupation_category_id = serializers.PrimaryKeyRelatedField(write_only=True,
+                                                                queryset=OccupationCategory.objects.all())
+
+    value = serializers.SerializerMethodField('get_value',
+                                              read_only=True)
+    label = serializers.SerializerMethodField('get_label',
+                                              read_only=True)
+
+    class Meta:
+        model = Occupation
+        fields = ['value', 'label', 'name', 'occupation_category', 'occupation_category_id']
+
+    def get_value(self, obj):
+        return obj.id
+
+    def get_label(self, obj):
+        return obj.name
+
+    def create(self, validated_data):
+        occupation_category = validated_data.pop('occupation_category_id')
+        occupation = Occupation.objects.create(occupation_category=occupation_category, **validated_data)
+        occupation.save()
+        return occupation
 
 
 class GroupSerializer(serializers.ModelSerializer):
@@ -385,10 +412,12 @@ class ProfileDeploymentSerializer(serializers.ModelSerializer):
     outbreak = OutbreakSerializer(read_only=True)
     outbreak_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Outbreak.objects.all())
     region_object = serializers.SerializerMethodField('get_region_object',
-                                                             read_only=True)
+                                                      read_only=True)
+
     class Meta:
         model = ProfileDeployment
-        fields = ['id', 'outbreak', 'start_date', 'end_date', 'profile_id', 'outbreak_id', 'status', 'region', 'region_object']
+        fields = ['id', 'outbreak', 'start_date', 'end_date', 'profile_id', 'outbreak_id', 'status', 'region',
+                  'region_object']
 
     def validate(self, data):
         if self.context['request'].method == 'POST':
@@ -423,7 +452,8 @@ class ProfileDeploymentSerializer(serializers.ModelSerializer):
             else:
                 deployment.outbreak = outbreak
             if region not in outbreak.affected_regions:
-                raise serializers.ValidationError({'region': 'This region does not exist in the list of affected regions'})
+                raise serializers.ValidationError(
+                    {'region': 'This region does not exist in the list of affected regions'})
 
         deployment.save()
         return deployment
@@ -436,7 +466,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['full_name'] = user.get_full_name()
         token['username'] = user.username
         token['level'] = user.level
-        token['region'] =  f"{user.attached_region.country.name} ,{user.attached_region.name}" if user.attached_region else ""
+        token[
+            'region'] = f"{user.attached_region.country.name} ,{user.attached_region.name}" if user.attached_region else ""
         token['roles'] = [group.name for group in user.groups.all()]
         token['is_superuser'] = user.is_superuser
         return token

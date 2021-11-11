@@ -8,7 +8,6 @@ phone_validator = RegexValidator(
 
 class TimeStampedModel(models.Model):
     """Abstract model for created_at & updated_at fields."""
-
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -80,8 +79,25 @@ class Competence(TimeStampedModel):
         return f"{self.name}"
 
 
+class OccupationCategory(TimeStampedModel):
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.name}"
+
+    class Meta:
+        """Meta definition for Occupation Category."""
+
+        verbose_name = 'Occupation Category'
+        verbose_name_plural = 'Occupation Categories'
+
+
 class Occupation(TimeStampedModel):
     name = models.CharField(max_length=255)
+    occupation_category = models.ForeignKey(OccupationCategory, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return f"{self.name}"
 
     class Meta:
         """Meta definition for Occupation."""

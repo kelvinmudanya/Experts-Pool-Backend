@@ -3,13 +3,15 @@ from rest_framework.routers import DefaultRouter
 
 from core.views import CountryViewSet, RegionViewSet, CompetenceViewSet, OccupationViewSet, ProfileViewSet, \
     ProfileRecommendationViewSet, OutbreakViewSet, ProfileDeploymentsViewSet, UserViewSet, GroupViewSet, \
-    suggest_rdes, get_outbreak_options, ProfileCVViewSet, get_profile_deployments, CustomObtainTokenPairView
+    suggest_rdes, get_outbreak_options, ProfileCVViewSet, get_profile_deployments, CustomObtainTokenPairView, \
+    OccupationCategoryViewSet
 
 core_router = DefaultRouter()
 core_router.register(r"country", CountryViewSet)
 core_router.register(r"region", RegionViewSet)
 core_router.register(r"competence", CompetenceViewSet)
 core_router.register(r"occupation", OccupationViewSet)
+core_router.register(r"occupation-category", OccupationCategoryViewSet)
 core_router.register(r"profile", ProfileViewSet)
 core_router.register(r"profile_cv", ProfileCVViewSet, basename="profile_cv")
 

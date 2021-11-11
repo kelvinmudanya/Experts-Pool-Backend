@@ -9,11 +9,12 @@ from rest_framework.schemas import ManualSchema
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from core.models import Country, Region, Competence, Occupation, Outbreak, ProfileDeployment, ProfileRecommendation, \
-    Profile, User
+    Profile, User, OccupationCategory
 from core.permissions import AnonCreateAndUpdateOwnerOnly, AnonReadAdminCreate, AdminOnly
 from core.serializers import CountrySerializer, RegionSerializer, CompetenceSerializer, OccupationSerializer, \
     OutbreakSerializer, ProfileDeploymentSerializer, ProfileRecommendationSerializer, ProfileSerializer, UserSerializer, \
-    GroupSerializer, OutbreakOptionsSerializer, ProfileCVSerializer, CustomTokenObtainPairSerializer
+    GroupSerializer, OutbreakOptionsSerializer, ProfileCVSerializer, CustomTokenObtainPairSerializer, \
+    OccupationCategorySerializer
 
 
 class CustomObtainTokenPairView(TokenObtainPairView):
@@ -46,6 +47,13 @@ class CompetenceViewSet(viewsets.ModelViewSet):
 class OccupationViewSet(viewsets.ModelViewSet):
     queryset = Occupation.objects.all()
     serializer_class = OccupationSerializer
+    permission_classes = [AnonReadAdminCreate]
+    pagination_class = None
+
+
+class OccupationCategoryViewSet(viewsets.ModelViewSet):
+    queryset = OccupationCategory.objects.all()
+    serializer_class = OccupationCategorySerializer
     permission_classes = [AnonReadAdminCreate]
     pagination_class = None
 
