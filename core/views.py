@@ -159,14 +159,33 @@ def get_outbreak_options(request):
 def fetch_stats(request):
     """ fetch stats """
     """ number of all RDEs, Current Active Outbreaks, Currently Deployed RDEs, RDEs not deployed,   """
-    profile_deployments = ProfileDeployment.objects.prefetch_related('profile')
-    all_rdes = Profile.objects.all()
+    # user
+    user = request.user
+    if user.level == 'eac':
+        profile_deployments = ProfileDeployment.objects.prefetch_related('profile')
+        all_rdes = Profile.objects.all()
+        active_deployments = \
+            ProfileDeployment.objects.aggregate(
+                Count('profile_id', distinct=True))['profile_id__count']
+    else:
+        # todo: fix active deployments count
+        profile_deployments = ProfileDeployment.objects.prefetch_related('profile', 'profile__region_of_residence__country_id')\
+            .filter(profile__region_of_residence__country_id=user.attached_region.country.id)
+        active_deployments = \
+        ProfileDeployment.objects.prefetch_related('profile_id','profile__region_of_residence__country_id').filter(
+            profile__region_of_residence__country_id=user.attached_region.country.id).aggregate(
+            Count('profile_id', distinct=True))['profile_id__count']
+
+        all_rdes = Profile.objects.filter(region_of_residence__country_id=user.attached_region.country.id)
     approved_rdes = all_rdes.filter(application_status='approval_complete').count()
-    active_deployments = ProfileDeployment.objects.aggregate(Count('profile_id', distinct=True))['profile_id__count']
     undeployed_rdes = all_rdes.count() - active_deployments
+    result = {
+        "active_deployments" : active_deployments,
+        "approved_rdes": approved_rdes,
+        "undeployed_rdes": undeployed_rdes
+    }
 
-
-    return Response(OutbreakOptionsSerializer(Outbreak.objects.all(), many=True).data)
+    return Response(result)
 
 
 @decorators.api_view(["GET"])
