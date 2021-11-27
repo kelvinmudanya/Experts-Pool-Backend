@@ -126,7 +126,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
                 if auth_user.level == 'eac':
                     return Profile.objects.all()
                 else:
-                    return Profile.objects.filter(region_of_residence=auth_user.attached_region)
+                    return Profile.objects.filter(region_of_residence__country_id=auth_user.attached_region.country.id)
             else:
                 raise serializers.ValidationError({"generic": "No Region attached to your profile. Consult admin. "})
 
