@@ -1,7 +1,9 @@
 import coreapi
 import coreschema
 from django.contrib.auth.models import Group
+from django.db.models import Count
 from rest_framework import viewsets, permissions, decorators, serializers, status
+from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -14,7 +16,7 @@ from core.permissions import AnonCreateAndUpdateOwnerOnly, AnonReadAdminCreate, 
 from core.serializers import CountrySerializer, RegionSerializer, CompetenceSerializer, OccupationSerializer, \
     OutbreakSerializer, ProfileDeploymentSerializer, ProfileRecommendationSerializer, ProfileSerializer, UserSerializer, \
     GroupSerializer, OutbreakOptionsSerializer, ProfileCVSerializer, CustomTokenObtainPairSerializer, \
-    OccupationCategorySerializer
+    OccupationCategorySerializer, ProfileDeploymentMiniSerializer
 
 
 class CustomObtainTokenPairView(TokenObtainPairView):
@@ -154,6 +156,20 @@ def get_outbreak_options(request):
 
 
 @decorators.api_view(["GET"])
+def fetch_stats(request):
+    """ fetch stats """
+    """ number of all RDEs, Current Active Outbreaks, Currently Deployed RDEs, RDEs not deployed,   """
+    profile_deployments = ProfileDeployment.objects.prefetch_related('profile')
+    all_rdes = Profile.objects.all()
+    approved_rdes = all_rdes.filter(application_status='approval_complete').count()
+    active_deployments = ProfileDeployment.objects.aggregate(Count('profile_id', distinct=True))['profile_id__count']
+    undeployed_rdes = all_rdes.count() - active_deployments
+
+
+    return Response(OutbreakOptionsSerializer(Outbreak.objects.all(), many=True).data)
+
+
+@decorators.api_view(["GET"])
 def get_profile_deployments(request, profile_id=None):
     profile = get_object_or_404(Profile.objects.all(), pk=profile_id)
     deployments = profile.deployments
@@ -209,9 +225,11 @@ class OutbreakViewSet(viewsets.ModelViewSet):
     queryset = Outbreak.objects.all()
     serializer_class = OutbreakSerializer
 
-    # def retrieve(self, request, pk=None):
-    #     """ get deployments for this outbreak """
-    #     queryset =
+    @action(detail=True, methods=['GET'], name='Get RDEs For Outbreak')
+    def get_rdes(self, request, pk=None, *args, **kwargs):
+        queryset = ProfileDeployment.objects.filter(outbreak=pk)
+        serializer = ProfileDeploymentMiniSerializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class ProfileDeploymentsViewSet(viewsets.ModelViewSet):

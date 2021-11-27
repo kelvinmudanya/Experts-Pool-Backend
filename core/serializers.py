@@ -56,7 +56,7 @@ class RegionSerializer(serializers.ModelSerializer):
         return obj.id
 
     def get_label(self, obj):
-        return obj.name
+        return f"{obj.name} - {obj.country.name}"
 
 
 class CompetenceSerializer(serializers.ModelSerializer):
@@ -143,12 +143,16 @@ class UserSerializer(serializers.ModelSerializer):
     groups_objects = serializers.SerializerMethodField('get_groups_objects',
                                                        read_only=True)
     groups = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all(),
-                                                many=True)
+                                            many=True)
+    attached_region = serializers.PrimaryKeyRelatedField(
+                            read_only=True)
+    attached_region_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Region.objects.all())
 
     class Meta:
         model = User
         fields = ['id', 'first_name', 'last_name', 'username',
-                  'password', 'phone_number', 'groups', 'groups_objects', 'staff_number', 'attached_region_id']
+                  'password', 'phone_number', 'groups', 'groups_objects',
+                  'staff_number', 'attached_region_id', 'attached_region', 'email']
 
     def get_groups_objects(self, obj):
         return GroupSerializer(obj.groups, many=True).data
@@ -159,6 +163,9 @@ class UserSerializer(serializers.ModelSerializer):
         #     staff_number = validated_data.pop('staff_number')
         # except:
         #     staff_number = ''
+
+        attached_region = validated_data.pop('attached_region_id')
+
         if not self.context['request'].user.is_staff:
             # cannot add groups since user is not admin
             groups = []
@@ -168,7 +175,7 @@ class UserSerializer(serializers.ModelSerializer):
         if phone_number:
             phone_number = phone_number
 
-        user = User.objects.create_user(phone_number=phone_number,
+        user = User.objects.create_user(phone_number=phone_number, attached_region=attached_region,
                                         **validated_data)
         for group in groups:
             user.groups.add(group)
@@ -186,8 +193,16 @@ class UserSerializer(serializers.ModelSerializer):
         if not self.context['request'].user.is_staff:
             # cannot add groups since user is not admin
             groups = None
+        try:
+            attached_region = validated_data.pop('attached_region_id')
+        except:
+            attached_region = ''
 
         user = super().update(instance, validated_data)
+        if attached_region != '':
+            user.attached_region = attached_region
+            user.save()
+
         if password:
             hashed_password = make_password(password)
             user.password = hashed_password
@@ -291,11 +306,12 @@ class ProfileSerializer(serializers.ModelSerializer):
 
         user_account = self.context['request'].user
 
-        if not (user_account.is_staff or user_account.is_superuser):
+        if (user_account.is_staff or user_account.is_superuser):
             profile = Profile.objects.create(occupation=occupation, region_of_residence=region_of_residence,
                                              **validated_data)
         else:
-
+            print("is noit staff")
+            print("user", user_account)
             profile = Profile.objects.create(occupation=occupation, user=user_account,
                                              region_of_residence=region_of_residence,
                                              **validated_data)
@@ -407,6 +423,16 @@ class OutbreakOptionsSerializer(serializers.ModelSerializer):
         pass
 
 
+class ProfileDeploymentMiniSerializer(serializers.ModelSerializer):
+    profile = ProfileSerializer('get_profile_object',
+                                read_only=True)
+
+    class Meta:
+        model = ProfileDeployment
+        fields = ['id', 'outbreak', 'start_date', 'end_date', 'profile', 'status', 'region',
+                  ]
+
+
 class ProfileDeploymentSerializer(serializers.ModelSerializer):
     profile_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Profile.objects.all())
     outbreak = OutbreakSerializer(read_only=True)
@@ -465,6 +491,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
         token['full_name'] = user.get_full_name()
         token['username'] = user.username
+        token['id'] = user.id
         token['level'] = user.level
         token[
             'region'] = f"{user.attached_region.country.name} ,{user.attached_region.name}" if user.attached_region else ""

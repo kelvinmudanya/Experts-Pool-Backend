@@ -56,7 +56,7 @@ class User(AbstractUser):
     staff_number = models.CharField(max_length=30, unique=True,
                                     blank=True, null=True)
     level = models.CharField(max_length=50, choices=LEVEL, default='rde')
-    attached_region = models.ForeignKey(Region, blank=True, null=True, on_delete=models.CASCADE)
+    attached_region = models.ForeignKey(Region, on_delete=models.CASCADE)
 
 
 COMPETENCE_TYPES = (
@@ -194,6 +194,9 @@ class Outbreak(TimeStampedModel):
     affected_regions = models.ManyToManyField(Region)
 
 
+    def __str__(self):
+        return f"{self.name}"
+
 deployment_status = (
     ('initiated', 'Initiated'),
     ('ended', 'Ended')
@@ -203,7 +206,10 @@ deployment_status = (
 class ProfileDeployment(TimeStampedModel):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='deployments')
     outbreak = models.ForeignKey(Outbreak, on_delete=models.CASCADE)
-    start_date = models.DateField()
+    start_date = models.DateField(auto_now=False)
     end_date = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=100, choices=deployment_status, default='initiated')
     region = models.ForeignKey(Region, on_delete=models.CASCADE, default=1)
+
+    def __str__(self):
+        return f"Deployment for {self.profile} is deployed on outbreak {self.outbreak}"

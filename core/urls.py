@@ -17,6 +17,7 @@ core_router.register(r"profile_cv", ProfileCVViewSet, basename="profile_cv")
 
 core_router.register(r"recommendation", ProfileRecommendationViewSet)
 core_router.register(r"outbreak", OutbreakViewSet)
+core_router.register(r"get_rdes", OutbreakViewSet)
 core_router.register(r"deployment", ProfileDeploymentsViewSet)
 core_router.register(r"users", UserViewSet)
 core_router.register(r"user-groups", GroupViewSet)
