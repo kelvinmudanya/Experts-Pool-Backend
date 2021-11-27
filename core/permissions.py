@@ -14,7 +14,7 @@ class AnonCreateAndUpdateOwnerOnly(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         return view.action in ['retrieve', 'update',
-                               'partial_update'] and obj.id == request.user.id or request.user.is_staff
+                               'partial_update'] and obj.id == request.user.id or request.user.is_superuser
 
 
 class ProfileAuthenticatedCreateAndUpdateOwnerOnly(permissions.BasePermission):
