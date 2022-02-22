@@ -55,8 +55,8 @@ class User(AbstractUser):
         phone_validator], blank=True, null=True)
     staff_number = models.CharField(max_length=30, unique=True,
                                     blank=True, null=True)
-    level = models.CharField(max_length=50, choices=LEVEL, default='rde')
-    attached_region = models.ForeignKey(Region, on_delete=models.CASCADE)
+    level = models.CharField(max_length=50, choices=LEVEL,blank=True, null=True, default='rde')
+    attached_region = models.ForeignKey(Region, on_delete=models.CASCADE, null=True, blank=True)
 
 
 COMPETENCE_TYPES = (
