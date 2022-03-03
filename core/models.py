@@ -1,6 +1,9 @@
+import os
+
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
+from django.utils import timezone
 
 phone_validator = RegexValidator(
     r'^\+?[0-9- ]{8,15}$', "Enter a valid phone number.")
@@ -149,7 +152,7 @@ class Profile(TimeStampedModel):
     id_number = models.CharField(max_length=255)
     region_of_residence = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True)
     # cv = models.FileField(upload_to='uploads/%Y/%m/%d/', black=True)
-    cv = models.TextField(null=True)
+    cv = models.FileField(blank=True, null=True)
     active = models.BooleanField(default=False)
     available = models.BooleanField(default=False)
     note = models.TextField(blank=True)

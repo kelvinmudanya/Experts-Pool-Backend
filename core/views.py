@@ -1,10 +1,14 @@
+import os
+
 import coreapi
 import coreschema
 from django.contrib.auth.models import Group
 from django.db.models import Count
+from django.utils import timezone
 from rest_framework import viewsets, permissions, decorators, serializers, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
+from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.schemas import ManualSchema
@@ -59,9 +63,14 @@ class OccupationCategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [AnonReadAdminCreate]
     pagination_class = None
 
+def handle_uploaded_file(f, storage_location):
+    with open(storage_location, 'wb+') as storage_location:
+        for chunk in f.chunks():
+            storage_location.write(chunk)
 
 class ProfileCVViewSet(viewsets.ViewSet):
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
+    # parser_classes = [MultiPartParser, FormParser]
     schema = ManualSchema(
         fields=[
             coreapi.Field(
@@ -72,7 +81,7 @@ class ProfileCVViewSet(viewsets.ViewSet):
             ),
             coreapi.Field(
                 "cv",
-                required=True,
+                required=False,
                 location="form",
                 schema=coreschema.String()
             ),
@@ -97,13 +106,21 @@ class ProfileCVViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
     def create(self, request):
-        cv = request.data['cv']
         profile_id = request.data['profile_id']
         profile = get_object_or_404(Profile.objects.all(), pk=profile_id)
-        profile.cv = cv
-        profile.save()
-        serializer = ProfileCVSerializer(profile)
-        return Response(serializer.data)
+
+        if 'cv' not in request.FILES:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        else:
+            file = request.FILES['cv']
+            now = timezone.now()
+            relative_dir = f"media/cv/{now:%Y%m%d}"
+            os.makedirs(relative_dir, exist_ok=True)
+            final_file_location = f"{relative_dir}/{profile.id}{file.name}"
+            handle_uploaded_file(file, final_file_location)
+            profile.cv = final_file_location
+            profile.save()
+        return Response({"profile_id": profile_id, "cv": final_file_location}, )
 
     def update(self, request, pk=None):
         cv = request.data['cv']

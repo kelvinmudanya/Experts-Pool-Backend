@@ -358,5 +358,5 @@ pip-selfcheck.json
 # Ignore all local history of files
 .history
 .ionide
-
+media
 # End of https://www.toptal.com/developers/gitignore/api/django,python,venv,pycharm,visualstudiocode,dotenv
