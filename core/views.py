@@ -8,19 +8,19 @@ from django.utils import timezone
 from rest_framework import viewsets, permissions, decorators, serializers, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
-from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.schemas import ManualSchema
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from core.models import Country, Region, Competence, Occupation, Outbreak, ProfileDeployment, ProfileRecommendation, \
-    Profile, User, OccupationCategory
+    Profile, User, OccupationCategory, OutbreakType, AcademicQualificationType, ProfileAcademicQualification
 from core.permissions import AnonCreateAndUpdateOwnerOnly, AnonReadAdminCreate, AdminOnly
 from core.serializers import CountrySerializer, RegionSerializer, CompetenceSerializer, OccupationSerializer, \
     OutbreakSerializer, ProfileDeploymentSerializer, ProfileRecommendationSerializer, ProfileSerializer, UserSerializer, \
     GroupSerializer, OutbreakOptionsSerializer, ProfileCVSerializer, CustomTokenObtainPairSerializer, \
-    OccupationCategorySerializer, ProfileDeploymentMiniSerializer
+    OccupationCategorySerializer, ProfileDeploymentMiniSerializer, OutbreakTypeSerializer, \
+    AcademicQualificationTypeSerializer, ProfileAcademicQualificationSerializer
 
 
 class CustomObtainTokenPairView(TokenObtainPairView):
@@ -63,13 +63,29 @@ class OccupationCategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [AnonReadAdminCreate]
     pagination_class = None
 
+
+class AcademicQualificationTypeViewSet(viewsets.ModelViewSet):
+    queryset = AcademicQualificationType.objects.all()
+    serializer_class = AcademicQualificationTypeSerializer
+    permission_classes = [AnonReadAdminCreate]
+    pagination_class = None
+
+
+class ProfileAcademicQualificationViewSet(viewsets.ModelViewSet):
+    queryset = ProfileAcademicQualification.objects.all()
+    filterset_fields = {'profile': ['exact']}
+    serializer_class = ProfileAcademicQualificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
 def handle_uploaded_file(f, storage_location):
     with open(storage_location, 'wb+') as storage_location:
         for chunk in f.chunks():
             storage_location.write(chunk)
 
+
 class ProfileCVViewSet(viewsets.ViewSet):
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
     # parser_classes = [MultiPartParser, FormParser]
     schema = ManualSchema(
         fields=[
@@ -114,7 +130,8 @@ class ProfileCVViewSet(viewsets.ViewSet):
         else:
             file = request.FILES['cv']
             now = timezone.now()
-            relative_dir = f"media/cv/{now:%Y%m%d}"
+            media_dir = "media"
+            relative_dir = f"{media_dir}/cv/{now:%Y%m%d}"
             os.makedirs(relative_dir, exist_ok=True)
             final_file_location = f"{relative_dir}/{profile.id}{file.name}"
             handle_uploaded_file(file, final_file_location)
@@ -186,18 +203,19 @@ def fetch_stats(request):
                 Count('profile_id', distinct=True))['profile_id__count']
     else:
         # todo: fix active deployments count
-        profile_deployments = ProfileDeployment.objects.prefetch_related('profile', 'profile__region_of_residence__country_id')\
+        profile_deployments = ProfileDeployment.objects.prefetch_related('profile',
+                                                                         'profile__region_of_residence__country_id') \
             .filter(profile__region_of_residence__country_id=user.attached_region.country.id)
         active_deployments = \
-        ProfileDeployment.objects.prefetch_related('profile_id','profile__region_of_residence__country_id').filter(
-            profile__region_of_residence__country_id=user.attached_region.country.id).aggregate(
-            Count('profile_id', distinct=True))['profile_id__count']
+            ProfileDeployment.objects.prefetch_related('profile_id', 'profile__region_of_residence__country_id').filter(
+                profile__region_of_residence__country_id=user.attached_region.country.id).aggregate(
+                Count('profile_id', distinct=True))['profile_id__count']
 
         all_rdes = Profile.objects.filter(region_of_residence__country_id=user.attached_region.country.id)
     approved_rdes = all_rdes.filter(application_status='approval_complete').count()
     undeployed_rdes = all_rdes.count() - active_deployments
     result = {
-        "active_deployments" : active_deployments,
+        "active_deployments": active_deployments,
         "approved_rdes": approved_rdes,
         "undeployed_rdes": undeployed_rdes
     }
@@ -266,6 +284,11 @@ class OutbreakViewSet(viewsets.ModelViewSet):
         queryset = ProfileDeployment.objects.filter(outbreak=pk)
         serializer = ProfileDeploymentMiniSerializer(queryset, many=True)
         return Response(serializer.data)
+
+
+class OutbreakTypeViewSet(viewsets.ModelViewSet):
+    queryset = OutbreakType.objects.all()
+    serializer_class = OutbreakTypeSerializer
 
 
 class ProfileDeploymentsViewSet(viewsets.ModelViewSet):

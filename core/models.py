@@ -1,9 +1,6 @@
-import os
-
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
-from django.utils import timezone
 
 phone_validator = RegexValidator(
     r'^\+?[0-9- ]{8,15}$', "Enter a valid phone number.")
@@ -58,7 +55,7 @@ class User(AbstractUser):
         phone_validator], blank=True, null=True)
     staff_number = models.CharField(max_length=30, unique=True,
                                     blank=True, null=True)
-    level = models.CharField(max_length=50, choices=LEVEL,blank=True, null=True, default='rde')
+    level = models.CharField(max_length=50, choices=LEVEL, blank=True, null=True, default='rde')
     attached_region = models.ForeignKey(Region, on_delete=models.CASCADE, null=True, blank=True)
 
 
@@ -132,6 +129,13 @@ APPLICATION_STATUS = (
 )
 
 
+class AcademicQualificationType(TimeStampedModel):
+    degree_level = models.CharField(max_length=500)
+
+    def __str__(self):
+        return f"{self.degree_level.capitalize()}"
+
+
 class Profile(TimeStampedModel):
     first_name = models.CharField(max_length=30)
     middle_name = models.CharField(max_length=30, blank=True)
@@ -141,8 +145,7 @@ class Profile(TimeStampedModel):
                                    blank=True, null=True)
 
     date_of_birth = models.DateField()
-    next_of_kin_name = models.CharField(max_length=30)
-    next_of_kin_phone = models.CharField(max_length=30)
+    next_of_kin = models.JSONField(blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     phone = models.CharField(max_length=20, validators=[phone_validator],
                              null=True)
@@ -158,6 +161,8 @@ class Profile(TimeStampedModel):
     note = models.TextField(blank=True)
     application_status = models.CharField(max_length=255, choices=APPLICATION_STATUS, default='pending_approval')
     competencies = models.ManyToManyField(Competence)
+    references = models.JSONField(blank=True, null=True)
+    professional_experience = models.JSONField(blank=True, null=True)
 
     class Meta:
         """Meta definition for Profile."""
@@ -174,6 +179,18 @@ class Profile(TimeStampedModel):
                f"{self.region_of_residence}. Application is {self.application_status}"
 
 
+class ProfileAcademicQualification(TimeStampedModel):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    qualification_type = models.ForeignKey(AcademicQualificationType, on_delete=models.SET_NULL, null=True)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    field_of_study = models.CharField(max_length=500)
+    institution = models.CharField(max_length=500)
+
+    def __str__(self):
+        return f"{self.profile.first_name} {self.profile.last_name}'s {self.qualification_type.degree_level} in {self.field_of_study} at {self.institution}"
+
+
 class ProfileRecommendation(TimeStampedModel):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='recommendations')
     comment = models.TextField()
@@ -187,7 +204,43 @@ OUTBREAK_SEVERITY = (
 )
 
 
+class OutbreakType(TimeStampedModel):
+    label = models.CharField(max_length=500)
+
+    def __str__(self):
+        return f"{self.label}"
+
+
 class Outbreak(TimeStampedModel):
+    """
+    Defines an event of public health concern.
+    Below is the proposed structure of the JSON Fields in this model
+
+    "general_information":{
+        "type":"onsite/offsite",
+        "reserved_for_pwds":"true/false"
+    }
+    "detailed_information":{
+        "mission_and_objectives":"",
+        "task_description":""
+    }
+    "eligibility_creteria":{
+        "age":"",
+        "nationality":""
+    }
+    "requirements":{
+        "required_experience":"",
+        "areas_of_expertise":"",
+        "languages":"",
+        "required_education_level":"",
+        "competencies_and_values":"",
+        "driving_license":""
+    }
+    "other_information":{
+        "living_conditions_and_remarks":"",
+        "inclusivity_statement":""
+    }
+    """
     name = models.CharField(max_length=255)
     description = models.TextField()
     competencies = models.ManyToManyField(Competence, blank=True, related_name="outbreaks")
@@ -195,10 +248,16 @@ class Outbreak(TimeStampedModel):
     start_date = models.DateField()
     end_date = models.DateField(null=True)
     affected_regions = models.ManyToManyField(Region)
-
+    type = models.ForeignKey(OutbreakType, null=True, blank=True, on_delete=models.SET_NULL)
+    general_information = models.JSONField(null=True, blank=True)
+    detailed_information = models.JSONField(null=True, blank=True)
+    eligibility_criteria = models.JSONField(null=True, blank=True)
+    requirements = models.JSONField(null=True, blank=True)
+    other_information = models.JSONField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.name}"
+
 
 deployment_status = (
     ('initiated', 'Initiated'),

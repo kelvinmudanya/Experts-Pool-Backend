@@ -3,7 +3,8 @@ from django.contrib.auth.admin import UserAdmin
 
 # Register your models here.
 from core.models import User, Country, Region, Competence, Occupation, Profile, \
-    ProfileRecommendation, Outbreak, ProfileDeployment, OccupationCategory
+    ProfileRecommendation, Outbreak, ProfileDeployment, OccupationCategory, AcademicQualificationType, \
+    ProfileAcademicQualification
 
 
 class CustomUserAdmin(UserAdmin):
@@ -22,7 +23,9 @@ admin.site.register(OccupationCategory)
 admin.site.register(Region)
 admin.site.register(Competence)
 admin.site.register(Occupation)
+admin.site.register(AcademicQualificationType)
 admin.site.register(Profile)
+admin.site.register(ProfileAcademicQualification)
 admin.site.register(ProfileRecommendation)
 admin.site.register(Outbreak)
 admin.site.register(ProfileDeployment)

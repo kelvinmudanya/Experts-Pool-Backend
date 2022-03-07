@@ -5,7 +5,7 @@ from rest_framework.validators import UniqueTogetherValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from core.models import Occupation, Country, Region, Competence, Profile, ProfileRecommendation, Outbreak, \
-    ProfileDeployment, User, OccupationCategory
+    ProfileDeployment, User, OccupationCategory, OutbreakType, AcademicQualificationType, ProfileAcademicQualification
 
 
 class CountrySerializer(serializers.ModelSerializer):
@@ -23,6 +23,23 @@ class CountrySerializer(serializers.ModelSerializer):
 
     def get_label(self, obj):
         return obj.name
+
+
+class AcademicQualificationTypeSerializer(serializers.ModelSerializer):
+    value = serializers.SerializerMethodField('get_value',
+                                              read_only=True)
+    label = serializers.SerializerMethodField('get_label',
+                                              read_only=True)
+
+    class Meta:
+        model = AcademicQualificationType
+        fields = '__all__'
+
+    def get_value(self, obj):
+        return obj.id
+
+    def get_label(self, obj):
+        return obj.degree_level
 
 
 class RegionSerializer(serializers.ModelSerializer):
@@ -143,9 +160,9 @@ class UserSerializer(serializers.ModelSerializer):
     groups_objects = serializers.SerializerMethodField('get_groups_objects',
                                                        read_only=True)
     groups = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all(),
-                                            many=True)
+                                                many=True)
     attached_region = serializers.PrimaryKeyRelatedField(
-                            read_only=True)
+        read_only=True)
     attached_region_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Region.objects.all())
 
     class Meta:
@@ -235,6 +252,7 @@ class ProfileCVSerializer(serializers.ModelSerializer):
     cv_upload_status = serializers.SerializerMethodField('get_cv_upload_status',
                                                          read_only=True)
     profile_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Profile.objects.all())
+
     def get_cv_upload_status(self, obj):
         return True if obj.cv else False
 
@@ -280,10 +298,11 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = Profile
         fields = [
             'id', 'first_name', 'middle_name', 'last_name', 'gender', 'occupation',
-            'occupation_id', 'date_of_birth', 'next_of_kin_name', 'next_of_kin_phone',
+            'occupation_id', 'date_of_birth', 'next_of_kin',
             'email', 'phone', 'user', 'id_type', 'id_number', 'region_of_residence',
             'region_of_residence_id', 'cv', 'cv_upload_status', 'active', 'available', 'note',
-            'application_status', 'competencies', 'competencies_objects', 'recommendations', 'active_deployments'
+            'application_status', 'competencies', 'competencies_objects', 'recommendations',
+            'active_deployments', 'references', 'professional_experience'
         ]
         extra_kwargs = {
             'cv': {'write_only': True}
@@ -325,7 +344,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             profile.save()
         else:
             print("user is admin")
-            profile = Profile.objects.create(occupation=occupation, region_of_residence=region_of_residence,**validated_data)
+            profile = Profile.objects.create(occupation=occupation, region_of_residence=region_of_residence,
+                                             **validated_data)
             profile.save()
 
         if competencies is not None:
@@ -345,6 +365,62 @@ class ProfileSerializer(serializers.ModelSerializer):
         return profile
 
 
+class ProfileAcademicQualificationSerializer(serializers.HyperlinkedModelSerializer):
+    profile_id = serializers.PrimaryKeyRelatedField(queryset=Profile.objects.all())
+
+    qualification_type = AcademicQualificationTypeSerializer(read_only=True)
+
+    qualification_type_id = serializers.PrimaryKeyRelatedField(write_only=True,
+                                                               queryset=AcademicQualificationType.objects.all())
+    profile = serializers.HyperlinkedRelatedField(
+        view_name='profile-detail',
+        read_only=True
+    )
+
+    class Meta:
+        model = ProfileAcademicQualification
+        fields = ['id', 'qualification_type', 'profile_id', 'start_date', 'end_date',
+                  'field_of_study', 'institution', 'qualification_type_id', 'profile']
+
+    def validate(self, data):
+        """
+        check if start date is before end date
+        :param data:
+        :return: true/false
+        """
+        try:
+            data['start_date']
+        except KeyError:
+            return data
+        try:
+            data['end_date']
+        except KeyError:
+            return data
+        if data['start_date'] > data['end_date']:
+            raise serializers.ValidationError('end date has to be later than start date')
+        return data
+
+    def create(self, validated_data):
+        profile = validated_data.pop('profile_id', None)
+        qualification_type = validated_data.pop('qualification_type_id', None)
+        profile_academic_qualification = ProfileAcademicQualification.objects.create(
+            profile=profile,
+            qualification_type=qualification_type,
+            **validated_data)
+        profile_academic_qualification.save()
+        return profile_academic_qualification
+
+    def update(self, instance, validated_data):
+        profile = validated_data.pop('profile_id', instance.profile)
+        qualification_type = validated_data.pop('qualification_type_id', instance.qualification_type)
+
+        profile_academic_qualification = super().update(instance, validated_data)
+        profile_academic_qualification.save()
+        profile_academic_qualification.profile = profile
+        profile_academic_qualification.profile_academic_qualification = qualification_type
+        return profile_academic_qualification
+
+
 class OutbreakSerializer(serializers.ModelSerializer):
     competencies_objects = serializers.SerializerMethodField('get_competencies_objects',
                                                              read_only=True)
@@ -359,11 +435,17 @@ class OutbreakSerializer(serializers.ModelSerializer):
                                               read_only=True)
     profiles = ProfileSerializer(many=True, read_only=True)
 
+    outbreak_type = serializers.PrimaryKeyRelatedField(queryset=OutbreakType.objects.all(),
+                                                       many=True)
+
+    outbreak_type_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=OutbreakType.objects.all())
+
     class Meta:
         model = Outbreak
         fields = ['id', 'name', 'description', 'competencies', 'competencies_objects', 'severity',
                   'start_date',
-                  'end_date', 'affected_regions', 'affected_regions_objects', 'value', 'label', 'profiles']
+                  'end_date', 'affected_regions', 'affected_regions_objects', 'value', 'label', 'profiles',
+                  'outbreak_type_id', 'outbreak_type']
 
     def get_value(self, obj):
         return obj.id
@@ -429,6 +511,18 @@ class OutbreakOptionsSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         pass
+
+
+class OutbreakTypeSerializer(serializers.ModelSerializer):
+    value = serializers.SerializerMethodField('get_value',
+                                              read_only=True)
+
+    class Meta:
+        model = OutbreakType
+        fields = ['value', 'label']
+
+    def get_value(self, obj):
+        return obj.id
 
 
 class ProfileDeploymentMiniSerializer(serializers.ModelSerializer):
