@@ -2,7 +2,10 @@ import os
 
 import coreapi
 import coreschema
+import environ
+from django.conf.global_settings import EMAIL_HOST_USER
 from django.contrib.auth.models import Group
+from django.core.mail import send_mail
 from django.db.models import Count
 from django.utils import timezone
 from rest_framework import viewsets, permissions, decorators, serializers, status
@@ -21,6 +24,17 @@ from core.serializers import CountrySerializer, RegionSerializer, CompetenceSeri
     GroupSerializer, OutbreakOptionsSerializer, ProfileCVSerializer, CustomTokenObtainPairSerializer, \
     OccupationCategorySerializer, ProfileDeploymentMiniSerializer, OutbreakTypeSerializer, \
     AcademicQualificationTypeSerializer, ProfileAcademicQualificationSerializer
+
+@decorators.api_view(["POST"])
+def sendEmail(request):
+    email_receipient = request.GET.get('receipient')
+    send_mail(
+        'Subject here',
+        'Here is the message.',
+        EMAIL_HOST_USER,
+        ['to@example.com'],
+        fail_silently=False,
+    )
 
 
 class CustomObtainTokenPairView(TokenObtainPairView):
