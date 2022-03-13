@@ -252,7 +252,7 @@ class Outbreak(TimeStampedModel):
     start_date = models.DateField()
     end_date = models.DateField(null=True)
     affected_regions = models.ManyToManyField(Region)
-    type = models.ForeignKey(OutbreakType, null=True, blank=True, on_delete=models.SET_NULL)
+    outbreak_type = models.ForeignKey(OutbreakType, null=True, blank=True, on_delete=models.SET_NULL)
     general_information = models.JSONField(null=True, blank=True)
     detailed_information = models.JSONField(null=True, blank=True)
     eligibility_criteria = models.JSONField(null=True, blank=True)
