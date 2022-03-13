@@ -501,8 +501,9 @@ class OutbreakSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         competencies_list = validated_data.pop('competencies', None)
+        outbreak_type = validated_data.pop('outbreak_type_id', None)
         affected_regions = validated_data.pop('affected_regions', None)
-        outbreak = Outbreak.objects.create(**validated_data)
+        outbreak = Outbreak.objects.create(outbreak_type=outbreak_type, **validated_data)
         outbreak.save()
         if affected_regions is not None:
             for affected_region in affected_regions:
@@ -516,7 +517,9 @@ class OutbreakSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         competencies_list = validated_data.pop('competencies', None)
         affected_regions = validated_data.pop('affected_regions', None)
-        outbreak = super().update(instance, validated_data)
+        outbreak_type = validated_data.pop('outbreak_type_id', None)
+        outbreak = super().update(instance,  validated_data)
+        outbreak.outbreak_type = outbreak_type
         outbreak.save()
         if affected_regions is not None:
             outbreak.affected_regions.clear()
