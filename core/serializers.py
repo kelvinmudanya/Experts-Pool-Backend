@@ -421,6 +421,18 @@ class ProfileAcademicQualificationSerializer(serializers.HyperlinkedModelSeriali
         return profile_academic_qualification
 
 
+class OutbreakTypeSerializer(serializers.ModelSerializer):
+    value = serializers.SerializerMethodField('get_value',
+                                              read_only=True)
+
+    class Meta:
+        model = OutbreakType
+        fields = ['value', 'label']
+
+    def get_value(self, obj):
+        return obj.id
+
+
 class OutbreakSerializer(serializers.ModelSerializer):
     competencies_objects = serializers.SerializerMethodField('get_competencies_objects',
                                                              read_only=True)
@@ -435,8 +447,7 @@ class OutbreakSerializer(serializers.ModelSerializer):
                                               read_only=True)
     profiles = ProfileSerializer(many=True, read_only=True)
 
-    outbreak_type = serializers.PrimaryKeyRelatedField(queryset=OutbreakType.objects.all(),
-                                                       many=True)
+    outbreak_type = OutbreakTypeSerializer(read_only=True)
 
     outbreak_type_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=OutbreakType.objects.all())
 
@@ -445,7 +456,7 @@ class OutbreakSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description', 'competencies', 'competencies_objects', 'severity',
                   'start_date',
                   'end_date', 'affected_regions', 'affected_regions_objects', 'value', 'label', 'profiles',
-                  'outbreak_type_id', 'outbreak_type' 'general_information', 'detailed_information',
+                  'outbreak_type_id', 'outbreak_type', 'general_information', 'detailed_information',
                   'eligibility_criteria', 'requirements', 'other_information']
 
     def get_value(self, obj):
@@ -514,16 +525,7 @@ class OutbreakOptionsSerializer(serializers.ModelSerializer):
         pass
 
 
-class OutbreakTypeSerializer(serializers.ModelSerializer):
-    value = serializers.SerializerMethodField('get_value',
-                                              read_only=True)
 
-    class Meta:
-        model = OutbreakType
-        fields = ['value', 'label']
-
-    def get_value(self, obj):
-        return obj.id
 
 
 class ProfileDeploymentMiniSerializer(serializers.ModelSerializer):
@@ -546,7 +548,7 @@ class ProfileDeploymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProfileDeployment
         fields = ['id', 'outbreak', 'start_date', 'end_date', 'profile_id', 'outbreak_id', 'status', 'region',
-                  'region_object']
+                  'region_object',]
 
     def validate(self, data):
         if self.context['request'].method == 'POST':
