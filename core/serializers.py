@@ -445,7 +445,8 @@ class OutbreakSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'description', 'competencies', 'competencies_objects', 'severity',
                   'start_date',
                   'end_date', 'affected_regions', 'affected_regions_objects', 'value', 'label', 'profiles',
-                  'outbreak_type_id', 'outbreak_type']
+                  'outbreak_type_id', 'outbreak_type' 'general_information', 'detailed_information',
+                  'eligibility_criteria', 'requirements', 'other_information']
 
     def get_value(self, obj):
         return obj.id

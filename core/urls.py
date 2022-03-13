@@ -4,7 +4,8 @@ from rest_framework.routers import DefaultRouter
 from core.views import CountryViewSet, RegionViewSet, CompetenceViewSet, OccupationViewSet, ProfileViewSet, \
     ProfileRecommendationViewSet, OutbreakViewSet, ProfileDeploymentsViewSet, UserViewSet, GroupViewSet, \
     suggest_rdes, get_outbreak_options, ProfileCVViewSet, get_profile_deployments, CustomObtainTokenPairView, \
-    OccupationCategoryViewSet, fetch_stats, AcademicQualificationTypeViewSet, ProfileAcademicQualificationViewSet
+    OccupationCategoryViewSet, fetch_stats, AcademicQualificationTypeViewSet, ProfileAcademicQualificationViewSet, \
+    OutbreakTypeViewSet
 
 core_router = DefaultRouter()
 core_router.register(r"country", CountryViewSet)
@@ -19,6 +20,7 @@ core_router.register(r"profile_cv", ProfileCVViewSet, basename="profile_cv")
 
 core_router.register(r"recommendation", ProfileRecommendationViewSet)
 core_router.register(r"outbreak", OutbreakViewSet)
+core_router.register(r"outbreak-type", OutbreakTypeViewSet)
 core_router.register(r"get_rdes", OutbreakViewSet)
 core_router.register(r"deployment", ProfileDeploymentsViewSet)
 core_router.register(r"users", UserViewSet)

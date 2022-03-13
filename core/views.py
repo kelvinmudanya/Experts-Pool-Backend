@@ -290,6 +290,35 @@ class ProfileRecommendationViewSet(viewsets.ModelViewSet):
 
 
 class OutbreakViewSet(viewsets.ModelViewSet):
+    """
+        Defines an event of public health concern.
+        Below is the proposed structure of the JSON Fields in this model
+
+        "general_information":{
+            "type":"onsite/offsite",
+            "reserved_for_pwds":"true/false"
+        }
+        "detailed_information":{
+            "mission_and_objectives":"",
+            "task_description":""
+        }
+        "eligibility_creteria":{
+            "age":"",
+            "nationality":""
+        }
+        "requirements":{
+            "required_experience":"",
+            "areas_of_expertise":"",
+            "languages":"",
+            "required_education_level":"",
+            "competencies_and_values":"",
+            "driving_license":""
+        }
+        "other_information":{
+            "living_conditions_and_remarks":"",
+            "inclusivity_statement":""
+        }
+        """
     queryset = Outbreak.objects.all()
     serializer_class = OutbreakSerializer
 
@@ -301,6 +330,7 @@ class OutbreakViewSet(viewsets.ModelViewSet):
 
 
 class OutbreakTypeViewSet(viewsets.ModelViewSet):
+    permission_classes = [AnonReadAdminCreate]
     queryset = OutbreakType.objects.all()
     serializer_class = OutbreakTypeSerializer
 
