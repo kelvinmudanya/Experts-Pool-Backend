@@ -1,13 +1,15 @@
+import base64
+import hashlib
 import os
 
 import coreapi
 import coreschema
-import environ
+import pyotp
 from django.conf.global_settings import EMAIL_HOST_USER
+from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.auth.models import Group
 from django.core.mail import send_mail
 from django.db.models import Count
-from django.http import JsonResponse, HttpResponse
 from django.template.loader import get_template
 from django.utils import timezone
 from rest_framework import viewsets, permissions, decorators, serializers, status
@@ -28,14 +30,13 @@ from core.serializers import CountrySerializer, RegionSerializer, CompetenceSeri
     AcademicQualificationTypeSerializer, ProfileAcademicQualificationSerializer
 
 
-
 @decorators.api_view(['GET'])
 def confirm_email(request, username=None, otp=None):
-    user = User.objects.filter(username=username, otp=otp).first()
-    if not user:
+    user = User.objects.filter(username=username, otp=otp, otp_used=False).first()
+    if user is None:
         raise serializers.ValidationError("Could not find the specified user due to bad otp or username")
-    user.is_active=True
-    user.otp_used=True
+    user.is_active = True
+    user.otp_used = True
     user.save()
     return Response('Email Verified Successfully')
 
@@ -58,6 +59,94 @@ def send_email(request):
     )
 
     return Response()
+
+
+@decorators.api_view(["POST"])
+def request_password_change(request):
+    """
+    username,
+    """
+    schema = ManualSchema(
+        fields=[
+            coreapi.Field(
+                "username",
+                required=True,
+                location="form",
+                schema=coreschema.Integer()
+            ),
+        ])
+
+    username = request.data.get('username')
+    user = User.objects.filter(username=username).first()
+    if user is None:
+        return Response({'detail': 'username not correct'})
+    secr = hashlib.sha512(user.username.encode("utf-8")).hexdigest()
+    secr = base64.b32encode(secr.encode("utf-8"))
+    totp = pyotp.TOTP(secr)
+    otp = totp.now()
+    message = get_template("reset_password.html").render(
+        {
+            'otp': str(otp)
+        })
+    user.otp = otp
+    user.otp_used = False
+    user.save()
+    send_mail(
+        subject='EAC RDE Password Change',
+        html_message=message,
+        message=message,
+        from_email=EMAIL_HOST_USER,
+        recipient_list=[user.email],
+        fail_silently=False
+    )
+
+    return Response({'detail': 'OTP Sent Successfully'})
+
+
+@decorators.api_view(["POST"])
+def complete_password_change(request):
+    """
+
+    POST:
+    username
+    password
+    otp
+    """
+    schema = ManualSchema(
+        fields=[
+            coreapi.Field(
+                "username",
+                required=True,
+                location="form",
+                schema=coreschema.Integer()
+            ),
+            coreapi.Field(
+                "password",
+                required=False,
+                location="form",
+                schema=coreschema.String()
+            ),
+            coreapi.Field(
+                "otp",
+                required=False,
+                location="form",
+                schema=coreschema.String()
+            ),
+        ])
+    username = request.data.get('username')
+    password = request.data.get('password')
+    otp = request.data.get('otp')
+    user = User.objects.filter(username=username, otp=otp, otp_used=False).first()
+    if user is None:
+        raise serializers.ValidationError({'detail': 'Please correct the details and try again'})
+    # Prevent users from using their previous password.
+    if check_password(password, user.password):
+        return Response({"detail": "Can't reuse old password"}, status=status.HTTP_403_FORBIDDEN)
+
+    user.password = make_password(password)
+    user.otp_used = True
+    user.save()
+    return Response({"detail": "Password Changed Successfully"})
 
 
 class CustomObtainTokenPairView(TokenObtainPairView):

@@ -211,7 +211,6 @@ class UserSerializer(serializers.ModelSerializer):
         otp = totp.now()
         user.otp=otp
         user.save()
-        print("link", f"{APP_URL}api/{str(user.username)}/{str(user.otp)}")
         message = get_template("confirm_email.html").render(
             {
                 'username': str(user.username),
