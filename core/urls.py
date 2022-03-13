@@ -5,7 +5,7 @@ from core.views import CountryViewSet, RegionViewSet, CompetenceViewSet, Occupat
     ProfileRecommendationViewSet, OutbreakViewSet, ProfileDeploymentsViewSet, UserViewSet, GroupViewSet, \
     suggest_rdes, get_outbreak_options, ProfileCVViewSet, get_profile_deployments, CustomObtainTokenPairView, \
     OccupationCategoryViewSet, fetch_stats, AcademicQualificationTypeViewSet, ProfileAcademicQualificationViewSet, \
-    OutbreakTypeViewSet
+    OutbreakTypeViewSet, send_email, confirm_email
 
 core_router = DefaultRouter()
 core_router.register(r"country", CountryViewSet)
@@ -27,6 +27,8 @@ core_router.register(r"users", UserViewSet)
 core_router.register(r"user-groups", GroupViewSet)
 url_patterns = core_router.urls
 url_patterns += [
+    path("send-email/", send_email, name="send_email"),
+    path("confirm-email/<username>/<otp>", confirm_email, name="confirm_email"),
     path("request-token/", CustomObtainTokenPairView.as_view(), name="request_otp"),
     path("suggest_rdes/", suggest_rdes, name="suggest_rdes"),
     path("fetch_stats/", fetch_stats, name="fetch_stats"),

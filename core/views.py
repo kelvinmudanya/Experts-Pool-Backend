@@ -7,6 +7,8 @@ from django.conf.global_settings import EMAIL_HOST_USER
 from django.contrib.auth.models import Group
 from django.core.mail import send_mail
 from django.db.models import Count
+from django.http import JsonResponse, HttpResponse
+from django.template.loader import get_template
 from django.utils import timezone
 from rest_framework import viewsets, permissions, decorators, serializers, status
 from rest_framework.decorators import action
@@ -25,16 +27,37 @@ from core.serializers import CountrySerializer, RegionSerializer, CompetenceSeri
     OccupationCategorySerializer, ProfileDeploymentMiniSerializer, OutbreakTypeSerializer, \
     AcademicQualificationTypeSerializer, ProfileAcademicQualificationSerializer
 
+
+
+@decorators.api_view(['GET'])
+def confirm_email(request, username=None, otp=None):
+    user = User.objects.filter(username=username, otp=otp).first()
+    if not user:
+        raise serializers.ValidationError("Could not find the specified user due to bad otp or username")
+    user.is_active=True
+    user.otp_used=True
+    user.save()
+    return Response('Email Verified Successfully')
+
+
 @decorators.api_view(["POST"])
-def sendEmail(request):
+def send_email(request):
     email_receipient = request.GET.get('receipient')
+    message = get_template("confirm_email.html").render(
+        {
+            'link': 'http://196.41.38.246:81/'
+        })
+
     send_mail(
-        'Subject here',
-        'Here is the message.',
-        EMAIL_HOST_USER,
-        ['to@example.com'],
-        fail_silently=False,
+        subject='Subject here',
+        html_message=message,
+        message=message,
+        from_email=EMAIL_HOST_USER,
+        recipient_list=['samfastone@gmail.com'],
+        fail_silently=False
     )
+
+    return Response()
 
 
 class CustomObtainTokenPairView(TokenObtainPairView):

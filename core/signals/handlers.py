@@ -8,4 +8,3 @@ from core.models import Country
 def country_created(sender, instance, **kwargs):
     print("created",str(sender), str(instance.name))
 
-

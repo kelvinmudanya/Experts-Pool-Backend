@@ -1,11 +1,18 @@
+import base64
+import hashlib
+import pyotp
+
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group
+from django.core.mail import send_mail
+from django.template.loader import get_template
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from core.models import Occupation, Country, Region, Competence, Profile, ProfileRecommendation, Outbreak, \
     ProfileDeployment, User, OccupationCategory, OutbreakType, AcademicQualificationType, ProfileAcademicQualification
+from eac_rde_backend.settings import EMAIL_HOST_USER, APP_URL
 
 
 class CountrySerializer(serializers.ModelSerializer):
@@ -196,7 +203,29 @@ class UserSerializer(serializers.ModelSerializer):
                                         **validated_data)
         for group in groups:
             user.groups.add(group)
+        # try sending email
 
+        secr = hashlib.sha512(user.username.encode("utf-8")).hexdigest()
+        secr = base64.b32encode(secr.encode("utf-8"))
+        totp = pyotp.TOTP(secr)
+        otp = totp.now()
+        user.otp=otp
+        user.save()
+        print("link", f"{APP_URL}api/{str(user.username)}/{str(user.otp)}")
+        message = get_template("confirm_email.html").render(
+            {
+                'username': str(user.username),
+                'otp': str(user.otp),
+                'app_url': APP_URL
+            })
+        send_mail(
+            subject='Confirm Your Email Address',
+            html_message=message,
+            message=message,
+            from_email=EMAIL_HOST_USER,
+            recipient_list=[user.email],
+            fail_silently=True
+        )
         return user
 
     def update(self, instance, validated_data):
