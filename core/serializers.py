@@ -1,7 +1,7 @@
 import base64
 import hashlib
-import pyotp
 
+import pyotp
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group
 from django.core.mail import send_mail
@@ -344,15 +344,6 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def get_competencies_objects(self, obj):
         return CompetenceSerializer(obj.competencies, many=True).data
-
-    def validate(self, data):
-        user = self.context['request'].user
-        if not (user.is_staff or user.is_superuser):
-            profiles = Profile.objects.filter(user=user)
-            if len(profiles) > 0:
-                raise serializers.ValidationError('This user already has a profile')
-
-        return super().validate(data)
 
     def create(self, validated_data):
         competencies = validated_data.pop('competencies', None)
