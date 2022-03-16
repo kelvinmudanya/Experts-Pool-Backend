@@ -276,6 +276,7 @@ class ProfileDeployment(TimeStampedModel):
     end_date = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=100, choices=deployment_status, default='initiated')
     region = models.ForeignKey(Region, on_delete=models.CASCADE, default=1)
+    accepted_by_user = models.BooleanField(null=True, default=False)
 
     def __str__(self):
         return f"Deployment for {self.profile} is deployed on outbreak {self.outbreak}"
