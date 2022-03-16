@@ -5,7 +5,8 @@ from core.views import CountryViewSet, RegionViewSet, CompetenceViewSet, Occupat
     ProfileRecommendationViewSet, OutbreakViewSet, ProfileDeploymentsViewSet, UserViewSet, GroupViewSet, \
     suggest_rdes, get_outbreak_options, ProfileCVViewSet, get_profile_deployments, CustomObtainTokenPairView, \
     OccupationCategoryViewSet, fetch_stats, AcademicQualificationTypeViewSet, ProfileAcademicQualificationViewSet, \
-    OutbreakTypeViewSet, send_email, confirm_email, request_password_change, complete_password_change
+    OutbreakTypeViewSet, send_email, confirm_email, request_password_change, complete_password_change, \
+    ProfileDeploymentReportViewSet
 
 core_router = DefaultRouter()
 core_router.register(r"country", CountryViewSet)
@@ -17,6 +18,7 @@ core_router.register(r"occupation-category", OccupationCategoryViewSet)
 core_router.register(r"profile", ProfileViewSet)
 core_router.register(r"profile-academic-qualification", ProfileAcademicQualificationViewSet)
 core_router.register(r"profile_cv", ProfileCVViewSet, basename="profile_cv")
+core_router.register(r"deployment-report", ProfileDeploymentReportViewSet, basename="deployment_report")
 
 core_router.register(r"recommendation", ProfileRecommendationViewSet)
 core_router.register(r"outbreak", OutbreakViewSet)

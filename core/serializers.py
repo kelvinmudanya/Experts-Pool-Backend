@@ -209,7 +209,7 @@ class UserSerializer(serializers.ModelSerializer):
         secr = base64.b32encode(secr.encode("utf-8"))
         totp = pyotp.TOTP(secr)
         otp = totp.now()
-        user.otp=otp
+        user.otp = otp
         user.save()
         message = get_template("confirm_email.html").render(
             {
@@ -509,7 +509,7 @@ class OutbreakSerializer(serializers.ModelSerializer):
         competencies_list = validated_data.pop('competencies', None)
         affected_regions = validated_data.pop('affected_regions', None)
         outbreak_type = validated_data.pop('outbreak_type_id', None)
-        outbreak = super().update(instance,  validated_data)
+        outbreak = super().update(instance, validated_data)
         outbreak.outbreak_type = outbreak_type
         outbreak.save()
         if affected_regions is not None:
@@ -547,17 +547,14 @@ class OutbreakOptionsSerializer(serializers.ModelSerializer):
         pass
 
 
-
-
-
 class ProfileDeploymentMiniSerializer(serializers.ModelSerializer):
     profile = ProfileSerializer('get_profile_object',
                                 read_only=True)
 
     class Meta:
         model = ProfileDeployment
-        fields = ['id', 'outbreak', 'start_date', 'end_date', 'profile', 'status', 'region',
-                  ]
+        fields = ['id', 'outbreak', 'start_date', 'end_date', 'profile',
+                  'status', 'region', 'deployment_report']
 
 
 class ProfileDeploymentSerializer(serializers.ModelSerializer):
