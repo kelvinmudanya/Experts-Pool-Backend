@@ -32,7 +32,7 @@ def profile_deployment_saved(sender, instance, **kwargs):
     if instance.accepted_by_user and instance.status == 'initiated':
         email_text = f"Your deployment for {instance.outbreak.name} has been confirmed."
         subject_text = 'Deployment Accepted'
-    if instance.status == 'ended':
+    if instance.status == 'ended' and instance.deployment_report is None:
         email_text = f"Your deployment for {instance.outbreak.name} has been {instance.status}. \n" \
                      f"Please upload a deployment report against your outbreak. \n" \
                      f" Thank you for your service."
