@@ -28,6 +28,17 @@ class ProfileAuthenticatedCreateAndUpdateOwnerOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return obj.user == request.user or request.user.is_staff or request.user.is_superuser
 
+class ProfileDeploymentAuthenticatedCreateAndUpdateOwnerOnly(permissions.BasePermission):
+    """
+    Custom permission:
+        - allow anonymous POST
+        - allow authenticated GET and PUT on *own* record
+        - allow all actions for staff
+    """
+
+    def has_object_permission(self, request, view, obj):
+        return obj.profile.user == request.user or request.user.is_staff or request.user.is_superuser
+
 
 class AnonReadAdminCreate(permissions.BasePermission):
     def has_permission(self, request, view):

@@ -277,6 +277,7 @@ class ProfileDeployment(TimeStampedModel):
     status = models.CharField(max_length=100, choices=deployment_status, default='initiated')
     region = models.ForeignKey(Region, on_delete=models.CASCADE, default=1)
     accepted_by_user = models.BooleanField(null=True, default=False)
+    rejected_by_user = models.BooleanField(null=True, default=False)
     deployment_report = models.FileField(blank=True, null=True)
 
     def __str__(self):

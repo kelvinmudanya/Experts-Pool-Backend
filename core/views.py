@@ -23,7 +23,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from core.models import Country, Region, Competence, Occupation, Outbreak, ProfileDeployment, ProfileRecommendation, \
     Profile, User, OccupationCategory, OutbreakType, AcademicQualificationType, ProfileAcademicQualification
 from core.permissions import AnonCreateAndUpdateOwnerOnly, AnonReadAdminCreate, AdminOnly, \
-    ProfileAuthenticatedCreateAndUpdateOwnerOnly
+    ProfileAuthenticatedCreateAndUpdateOwnerOnly, ProfileDeploymentAuthenticatedCreateAndUpdateOwnerOnly
 from core.serializers import CountrySerializer, RegionSerializer, CompetenceSerializer, OccupationSerializer, \
     OutbreakSerializer, ProfileDeploymentSerializer, ProfileRecommendationSerializer, ProfileSerializer, UserSerializer, \
     GroupSerializer, OutbreakOptionsSerializer, ProfileCVSerializer, CustomTokenObtainPairSerializer, \
@@ -489,7 +489,7 @@ class OutbreakTypeViewSet(viewsets.ModelViewSet):
 class ProfileDeploymentsViewSet(viewsets.ModelViewSet):
     queryset = ProfileDeployment.objects.all()
     serializer_class = ProfileDeploymentSerializer
-    permission_classes = [AdminOnly]
+    permission_classes = [ProfileDeploymentAuthenticatedCreateAndUpdateOwnerOnly]
 
     def get_queryset(self):
         auth_user = self.request.user

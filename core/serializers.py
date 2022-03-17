@@ -567,7 +567,7 @@ class ProfileDeploymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProfileDeployment
         fields = ['id', 'outbreak', 'start_date', 'end_date', 'profile_id', 'outbreak_id', 'status', 'region',
-                  'region_object', 'accepted_by_user']
+                  'region_object', 'accepted_by_user', 'rejected_by_user']
 
     def validate(self, data):
         if self.context['request'].method == 'POST':
