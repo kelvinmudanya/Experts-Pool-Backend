@@ -325,7 +325,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = [
-            'id', 'first_name', 'middle_name', 'last_name', 'gender', 'occupation',
+            'id', 'first_name', 'middle_name', 'last_name', 'gender', 'religion', 'occupation',
             'occupation_id', 'date_of_birth', 'next_of_kin',
             'email', 'phone', 'user', 'id_type', 'id_number', 'region_of_residence',
             'region_of_residence_id', 'cv', 'cv_upload_status', 'active', 'available', 'note',

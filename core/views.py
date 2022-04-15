@@ -55,11 +55,13 @@ class FilterRDEViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         region_of_residence = request.GET.getlist('region')
         occupation = request.GET.getlist('occupation')
         gender = request.GET.getlist('gender')
+        religion = request.GET.getlist('religion')
         application_status = request.GET.getlist('application_status')
         # academic qualification filter
         academic_degree = request.GET.getlist('academic_degree')
         competencies = request.GET.getlist('competencies')
         rde_profiles = Profile.objects.all()
+
         if len(region_of_residence) != 0:
             rde_profiles = rde_profiles.filter(
                 region_of_residence_id__in=region_of_residence,
@@ -67,6 +69,10 @@ class FilterRDEViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         if len(occupation) != 0:
             rde_profiles = rde_profiles.filter(
                 occupation_id__in=occupation
+            )
+        if len(religion) != 0:
+            rde_profiles = rde_profiles.filter(
+                religion__in=religion
             )
         if len(gender) != 0:
             rde_profiles = rde_profiles.filter(

@@ -122,7 +122,6 @@ ID_TYPES = (
 GENDER_TYPES = (
     ('F', 'Female'),
     ('M', 'Male'),
-    ('T', 'Transgender'),
     ('O', 'Other'),
 )
 
@@ -163,6 +162,7 @@ class Profile(TimeStampedModel):
     active = models.BooleanField(default=False)
     available = models.BooleanField(default=False)
     note = models.TextField(blank=True)
+    religion = models.CharField(max_length=150, null=True, blank=True)
     application_status = models.CharField(max_length=255, choices=APPLICATION_STATUS, default='pending_approval')
     competencies = models.ManyToManyField(Competence)
     references = models.JSONField(blank=True, null=True)
@@ -255,7 +255,7 @@ class Outbreak(TimeStampedModel):
     outbreak_type = models.ForeignKey(OutbreakType, null=True, blank=True, on_delete=models.SET_NULL)
     general_information = models.JSONField(null=True, blank=True)
     detailed_information = models.JSONField(null=True, blank=True)
-    eligibility_criteria = models.JSONField(null=True, blank=True)
+    eligibility_criteria = models.TextField(null=True, blank=True)
     requirements = models.JSONField(null=True, blank=True)
     other_information = models.JSONField(null=True, blank=True)
 
