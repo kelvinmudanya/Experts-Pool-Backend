@@ -12,7 +12,7 @@ from django.core.mail import send_mail
 from django.db.models import Count
 from django.template.loader import get_template
 from django.utils import timezone
-from rest_framework import viewsets, permissions, decorators, serializers, status
+from rest_framework import viewsets, permissions, decorators, serializers, status, mixins
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
@@ -22,13 +22,75 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from core.models import Country, Region, Competence, Occupation, Outbreak, ProfileDeployment, ProfileRecommendation, \
     Profile, User, OccupationCategory, OutbreakType, AcademicQualificationType, ProfileAcademicQualification
-from core.permissions import AnonCreateAndUpdateOwnerOnly, AnonReadAdminCreate, AdminOnly, \
+from core.permissions import AnonCreateAndUpdateOwnerOnly, AnonReadAdminCreate, \
     ProfileAuthenticatedCreateAndUpdateOwnerOnly, ProfileDeploymentAuthenticatedCreateAndUpdateOwnerOnly
 from core.serializers import CountrySerializer, RegionSerializer, CompetenceSerializer, OccupationSerializer, \
     OutbreakSerializer, ProfileDeploymentSerializer, ProfileRecommendationSerializer, ProfileSerializer, UserSerializer, \
     GroupSerializer, OutbreakOptionsSerializer, ProfileCVSerializer, CustomTokenObtainPairSerializer, \
     OccupationCategorySerializer, ProfileDeploymentMiniSerializer, OutbreakTypeSerializer, \
     AcademicQualificationTypeSerializer, ProfileAcademicQualificationSerializer
+
+
+class FilterRDEViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    schema = ManualSchema(
+        fields=[
+            coreapi.Field(
+                "region",
+                location='query',
+                required=False,
+                schema=coreschema.String()
+            ),
+            coreapi.Field(
+                "gender",
+                location='query',
+                required=False,
+                schema=coreschema.String()
+            ),
+        ])
+
+    def list(self, request, *args, **kwargs):
+        rde_profiles = Profile.objects.all()
+        # location filter
+        # rde_profiles = []
+        region_of_residence = request.GET.getlist('region')
+        occupation = request.GET.getlist('occupation')
+        gender = request.GET.getlist('gender')
+        application_status = request.GET.getlist('application_status')
+        # academic qualification filter
+        academic_degree = request.GET.getlist('academic_degree')
+        competencies = request.GET.getlist('competencies')
+        rde_profiles = Profile.objects.all()
+        if len(region_of_residence) != 0:
+            rde_profiles = rde_profiles.filter(
+                region_of_residence_id__in=region_of_residence,
+            )
+        if len(occupation) != 0:
+            rde_profiles = rde_profiles.filter(
+                occupation_id__in=occupation
+            )
+        if len(gender) != 0:
+            rde_profiles = rde_profiles.filter(
+                gender__in=gender)
+        if len(application_status) != 0:
+            rde_profiles = rde_profiles.filter(
+                application_status__in=application_status
+            )
+        if len(academic_degree) != 0:
+            rde_profiles = rde_profiles.filter(
+                profile_academic_qualifications__qualification_type__in=academic_degree
+            )
+        if len(application_status) != 0:
+            rde_profiles = rde_profiles.filter(
+                application_status__in=application_status
+            )
+        if len(competencies) != 0:
+            rde_profiles = rde_profiles.filter(
+                competencies__in=competencies
+            )
+        # professional experience filter
+        # deployments filter
+        rde_list = ProfileSerializer(rde_profiles, many=True)
+        return Response(rde_list.data)
 
 
 @decorators.api_view(['GET'])

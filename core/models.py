@@ -184,7 +184,7 @@ class Profile(TimeStampedModel):
 
 
 class ProfileAcademicQualification(TimeStampedModel):
-    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='profile_academic_qualifications')
     qualification_type = models.ForeignKey(AcademicQualificationType, on_delete=models.SET_NULL, null=True)
     start_date = models.DateField()
     end_date = models.DateField()
