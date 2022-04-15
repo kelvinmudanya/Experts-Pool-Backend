@@ -49,6 +49,7 @@ class FilterRDEViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         ])
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
+    permission_classes = [permissions.IsAdminUser]
 
     def list(self, request, *args, **kwargs):
         rde_profiles = Profile.objects.all()
