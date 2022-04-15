@@ -47,6 +47,8 @@ class FilterRDEViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
                 schema=coreschema.String()
             ),
         ])
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
 
     def list(self, request, *args, **kwargs):
         rde_profiles = Profile.objects.all()
@@ -95,8 +97,13 @@ class FilterRDEViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
             )
         # professional experience filter
         # deployments filter
-        rde_list = ProfileSerializer(rde_profiles, many=True)
-        return Response(rde_list.data)
+        queryset = rde_profiles
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(rde_profiles, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 @decorators.api_view(['GET'])
