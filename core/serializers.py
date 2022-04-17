@@ -330,7 +330,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'email', 'phone', 'user', 'id_type', 'id_number', 'region_of_residence',
             'region_of_residence_id', 'cv', 'cv_upload_status', 'active', 'available', 'note',
             'application_status', 'competencies', 'competencies_objects', 'recommendations',
-            'active_deployments', 'references', 'professional_experience'
+            'active_deployments', 'references', 'professional_experience', 'previous_deployment_experience'
         ]
         extra_kwargs = {
             'cv': {'write_only': True}
@@ -476,7 +476,7 @@ class OutbreakSerializer(serializers.ModelSerializer):
                   'start_date',
                   'end_date', 'affected_regions', 'affected_regions_objects', 'value', 'label', 'profiles',
                   'outbreak_type_id', 'outbreak_type', 'general_information', 'detailed_information',
-                  'eligibility_criteria', 'requirements', 'other_information']
+                  'eligibility_criteria', 'requirements', 'other_information', 'report']
 
     def get_value(self, obj):
         return obj.id

@@ -167,6 +167,7 @@ class Profile(TimeStampedModel):
     competencies = models.ManyToManyField(Competence)
     references = models.JSONField(blank=True, null=True)
     professional_experience = models.JSONField(blank=True, null=True)
+    previous_deployment_experience = models.JSONField(blank=True, null=True)
 
     class Meta:
         """Meta definition for Profile."""
@@ -258,6 +259,7 @@ class Outbreak(TimeStampedModel):
     eligibility_criteria = models.TextField(null=True, blank=True)
     requirements = models.JSONField(null=True, blank=True)
     other_information = models.JSONField(null=True, blank=True)
+    report = models.FileField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.name}"

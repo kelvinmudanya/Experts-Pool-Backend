@@ -287,6 +287,44 @@ def handle_uploaded_file(f, storage_location):
             storage_location.write(chunk)
 
 
+class OutbreakReportViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    schema = ManualSchema(
+        fields=[
+            coreapi.Field(
+                "report",
+                required=False,
+                location="form",
+                type='file',
+                schema=coreschema.String()
+            ),
+            coreapi.Field(
+                "outbreak_id",
+                required=False,
+                location="form",
+                schema=coreschema.String()
+            ),
+        ])
+
+    def create(self, request):
+        outbreak_id = request.data['outbreak_id']
+        outbreak = get_object_or_404(Outbreak.objects.all(), pk=outbreak_id)
+
+        if 'report' not in request.FILES:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        else:
+            file = request.FILES['report']
+            now = timezone.now()
+            media_dir = "media"
+            relative_dir = f"{media_dir}/outbreak_reports/{now:%Y%m%d}"
+            os.makedirs(relative_dir, exist_ok=True)
+            final_file_location = f"{relative_dir}/{outbreak.id}{file.name}"
+            handle_uploaded_file(file, final_file_location)
+            outbreak.report = final_file_location
+            outbreak.save()
+        return Response({"outbreak_id": outbreak_id, "report": final_file_location}, )
+
+
 class ProfileDeploymentReportViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
     schema = ManualSchema(
