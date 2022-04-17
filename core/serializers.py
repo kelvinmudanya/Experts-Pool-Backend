@@ -468,7 +468,7 @@ class OutbreakSerializer(serializers.ModelSerializer):
 
     outbreak_type = OutbreakTypeSerializer(read_only=True)
 
-    outbreak_type_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=OutbreakType.objects.all())
+    outbreak_type_id = serializers.PrimaryKeyRelatedField(queryset=OutbreakType.objects.all())
 
     class Meta:
         model = Outbreak

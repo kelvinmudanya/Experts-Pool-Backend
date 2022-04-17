@@ -323,6 +323,7 @@ class OutbreakReportViewSet(viewsets.ModelViewSet):
             outbreak.report = final_file_location
             outbreak.save()
         return Response({"outbreak_id": outbreak_id, "report": final_file_location}, )
+    # todo: add delete 
 
 
 class ProfileDeploymentReportViewSet(viewsets.ViewSet):
