@@ -20,6 +20,12 @@ class CountrySerializer(serializers.ModelSerializer):
                                               read_only=True)
     label = serializers.SerializerMethodField('get_label',
                                               read_only=True)
+    rde_count = serializers.SerializerMethodField('get_rde_count',
+                                                  read_only=True)
+    deployed_count = serializers.SerializerMethodField('get_deployed_rde_count',
+                                                       read_only=True)
+    pending_approval = serializers.SerializerMethodField('get_pending_approval_rde_count',
+                                                         read_only=True)
 
     class Meta:
         model = Country
@@ -30,6 +36,19 @@ class CountrySerializer(serializers.ModelSerializer):
 
     def get_label(self, obj):
         return obj.name
+
+    def get_rde_count(self, obj):
+        return Profile.objects.filter(region_of_residence__country_id=obj.id).count()
+
+    def get_pending_approval_rde_count(self, obj):
+        return Profile.objects.filter(region_of_residence__country_id=obj.id,
+                                      application_status='pending_approval'
+                                      ).count()
+
+    def get_deployed_rde_count(self, obj):
+        return Profile.objects.filter(region_of_residence__country_id=obj.id,
+                                      deployments__status__exact='initiated'
+                                      ).count()
 
 
 class AcademicQualificationTypeSerializer(serializers.ModelSerializer):

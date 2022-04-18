@@ -19,7 +19,6 @@ core_router.register(r"profile", ProfileViewSet)
 core_router.register(r"profile-academic-qualification", ProfileAcademicQualificationViewSet)
 core_router.register(r"profile_cv", ProfileCVViewSet, basename="profile_cv")
 core_router.register(r"deployment-report", ProfileDeploymentReportViewSet, basename="deployment_report")
-
 core_router.register(r"recommendation", ProfileRecommendationViewSet)
 core_router.register(r"outbreak", OutbreakViewSet)
 core_router.register(r"outbreak-report", OutbreakReportViewSet, basename='outbreak_report')
