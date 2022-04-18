@@ -12,7 +12,8 @@ from django.core.mail import send_mail
 from django.db.models import Count
 from django.template.loader import get_template
 from django.utils import timezone
-from rest_framework import viewsets, permissions, decorators, serializers, status, mixins
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets, permissions, decorators, serializers, status, filters
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny
@@ -29,82 +30,6 @@ from core.serializers import CountrySerializer, RegionSerializer, CompetenceSeri
     GroupSerializer, OutbreakOptionsSerializer, ProfileCVSerializer, CustomTokenObtainPairSerializer, \
     OccupationCategorySerializer, ProfileDeploymentMiniSerializer, OutbreakTypeSerializer, \
     AcademicQualificationTypeSerializer, ProfileAcademicQualificationSerializer
-
-
-class FilterRDEViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
-    schema = ManualSchema(
-        fields=[
-            coreapi.Field(
-                "region",
-                location='query',
-                required=False,
-                schema=coreschema.String()
-            ),
-            coreapi.Field(
-                "gender",
-                location='query',
-                required=False,
-                schema=coreschema.String()
-            ),
-        ])
-    queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
-    permission_classes = [permissions.IsAdminUser]
-
-    def list(self, request, *args, **kwargs):
-        rde_profiles = Profile.objects.all()
-        # location filter
-        # rde_profiles = []
-        region_of_residence = request.GET.getlist('region')
-        occupation = request.GET.getlist('occupation')
-        gender = request.GET.getlist('gender')
-        religion = request.GET.getlist('religion')
-        application_status = request.GET.getlist('application_status')
-        # academic qualification filter
-        academic_degree = request.GET.getlist('academic_degree')
-        competencies = request.GET.getlist('competencies')
-        rde_profiles = Profile.objects.all()
-
-        if len(region_of_residence) != 0:
-            rde_profiles = rde_profiles.filter(
-                region_of_residence_id__in=region_of_residence,
-            )
-        if len(occupation) != 0:
-            rde_profiles = rde_profiles.filter(
-                occupation_id__in=occupation
-            )
-        if len(religion) != 0:
-            rde_profiles = rde_profiles.filter(
-                religion__in=religion
-            )
-        if len(gender) != 0:
-            rde_profiles = rde_profiles.filter(
-                gender__in=gender)
-        if len(application_status) != 0:
-            rde_profiles = rde_profiles.filter(
-                application_status__in=application_status
-            )
-        if len(academic_degree) != 0:
-            rde_profiles = rde_profiles.filter(
-                profile_academic_qualifications__qualification_type__in=academic_degree
-            )
-        if len(application_status) != 0:
-            rde_profiles = rde_profiles.filter(
-                application_status__in=application_status
-            )
-        if len(competencies) != 0:
-            rde_profiles = rde_profiles.filter(
-                competencies__in=competencies
-            )
-        # professional experience filter
-        # deployments filter
-        queryset = rde_profiles
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(rde_profiles, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
 
 
 @decorators.api_view(['GET'])
@@ -431,7 +356,60 @@ class ProfileCVViewSet(viewsets.ViewSet):
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     permission_classes = [permissions.IsAuthenticated, ProfileAuthenticatedCreateAndUpdateOwnerOnly]
+    search_fields = ['first_name', 'middle_name', 'last_name', 'gender', 'email', 'user__username', 'id_number']
+    schema = ManualSchema(
+        fields=[
+            coreapi.Field(
+                "search",
+                location='query',
+                required=False,
+                schema=coreschema.String()
+            ),
+            coreapi.Field(
+                "region",
+                location='query',
+                required=False,
+                schema=coreschema.String()
+            ),
+            coreapi.Field(
+                "gender",
+                location='query',
+                required=False,
+                schema=coreschema.String()
+            ),
+            coreapi.Field(
+                "occupation",
+                location='query',
+                required=False,
+                schema=coreschema.Integer()
+            ),
+            coreapi.Field(
+                "religion",
+                location='query',
+                required=False,
+                schema=coreschema.String()
+            ),
+            coreapi.Field(
+                "application_status",
+                location='query',
+                required=False,
+                schema=coreschema.String()
+            ),
+            coreapi.Field(
+                "academic_degree",
+                location='query',
+                required=False,
+                schema=coreschema.Integer()
+            ),
+            coreapi.Field(
+                "competencies",
+                location='query',
+                required=False,
+                schema=coreschema.Integer()
+            ),
+        ])
 
     def get_queryset(self):
         auth_user = self.request.user
@@ -447,20 +425,54 @@ class ProfileViewSet(viewsets.ModelViewSet):
         else:
             return Profile.objects.filter(user=auth_user)
 
+    def list(self, request, *args, **kwargs):
+        region_of_residence = request.GET.getlist('region')
+        occupation = request.GET.getlist('occupation')
+        gender = request.GET.getlist('gender')
+        religion = request.GET.getlist('religion')
+        application_status = request.GET.getlist('application_status')
+        academic_degree = request.GET.getlist('academic_degree')
+        competencies = request.GET.getlist('competencies')
+        rde_profiles = self.filter_queryset(self.get_queryset())
 
-@decorators.api_view(["POST"])
-def suggest_rdes(request):
-    """Suggest RDEs Based on Competencies. pass competencies=[id1, id2] """
-    try:
-        competencies = request.data['competencies']
-    except KeyError:
-        competencies = []
-
-    if competencies == []:
-        suggested_profiles = Profile.objects.all()
-    else:
-        suggested_profiles = Profile.objects.filter(competencies__in=competencies)
-    return Response(ProfileSerializer(suggested_profiles, many=True).data)
+        if len(region_of_residence) != 0:
+            rde_profiles = rde_profiles.filter(
+                region_of_residence_id__in=region_of_residence,
+            )
+        if len(occupation) != 0:
+            rde_profiles = rde_profiles.filter(
+                occupation_id__in=occupation
+            )
+        if len(religion) != 0:
+            rde_profiles = rde_profiles.filter(
+                religion__in=religion
+            )
+        if len(gender) != 0:
+            rde_profiles = rde_profiles.filter(
+                gender__in=gender)
+        if len(application_status) != 0:
+            rde_profiles = rde_profiles.filter(
+                application_status__in=application_status
+            )
+        if len(academic_degree) != 0:
+            rde_profiles = rde_profiles.filter(
+                profile_academic_qualifications__qualification_type__in=academic_degree
+            )
+        if len(application_status) != 0:
+            rde_profiles = rde_profiles.filter(
+                application_status__in=application_status
+            )
+        if len(competencies) != 0:
+            rde_profiles = rde_profiles.filter(
+                competencies__in=competencies
+            )
+        queryset = rde_profiles
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(rde_profiles, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 @decorators.api_view(["GET"])
