@@ -333,6 +333,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     cv_upload_status = serializers.SerializerMethodField('get_cv_upload_status',
                                                          read_only=True)
     active_deployments = serializers.SerializerMethodField('get_active_deployments', read_only=True)
+    current_deployment = serializers.SerializerMethodField('get_current_deployment', read_only=True)
 
     def get_cv_upload_status(self, obj):
         return True if obj.cv else False
@@ -340,6 +341,10 @@ class ProfileSerializer(serializers.ModelSerializer):
     def get_active_deployments(self, obj):
         active_deployments = ProfileDeployment.objects.filter(profile=obj.id, status='initiated').count()
         return active_deployments
+
+    def get_current_deployment(self, obj):
+        current_deployment = ProfileDeployment.objects.filter(profile=obj.id, status='initiated').first()
+        return current_deployment.outbreak.name if current_deployment is not None else 'No Active Deployment'
 
     class Meta:
         model = Profile
@@ -349,7 +354,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             'email', 'phone', 'user', 'id_type', 'id_number', 'region_of_residence',
             'region_of_residence_id', 'cv', 'cv_upload_status', 'active', 'available', 'note',
             'application_status', 'competencies', 'competencies_objects', 'recommendations',
-            'active_deployments', 'references', 'professional_experience', 'previous_deployment_experience'
+            'active_deployments', 'current_deployment', 'references', 'professional_experience',
+            'previous_deployment_experience'
         ]
         extra_kwargs = {
             'cv': {'write_only': True}
