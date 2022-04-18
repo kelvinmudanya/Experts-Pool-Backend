@@ -57,6 +57,7 @@ class User(AbstractUser):
                                     blank=True, null=True)
     level = models.CharField(max_length=50, choices=LEVEL, blank=True, null=True, default='rde')
     attached_region = models.ForeignKey(Region, on_delete=models.CASCADE, null=True, blank=True)
+    other_region = models.CharField(max_length=500, blank=True, null=True)
     is_active = models.BooleanField(default=False)
     otp = models.CharField(default=1234, max_length=255)
     otp_used = models.BooleanField(default=False)

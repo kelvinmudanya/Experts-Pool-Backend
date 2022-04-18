@@ -195,7 +195,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'first_name', 'last_name', 'username',
                   'password', 'phone_number', 'groups', 'groups_objects',
-                  'staff_number', 'attached_region_id', 'attached_region', 'email']
+                  'staff_number', 'attached_region_id', 'other_region', 'attached_region', 'email']
 
     def get_groups_objects(self, obj):
         return GroupSerializer(obj.groups, many=True).data
