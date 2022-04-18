@@ -205,6 +205,17 @@ class ProfileAcademicQualificationViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileAcademicQualificationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    schema = ManualSchema(
+        fields=[
+            coreapi.Field(
+                "profile",
+                required=False,
+                location="query",
+                type='integer',
+                schema=coreschema.String()
+            ),
+        ])
+
 
 def handle_uploaded_file(f, storage_location):
     with open(storage_location, 'wb+') as storage_location:
