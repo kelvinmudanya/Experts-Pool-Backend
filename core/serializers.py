@@ -347,6 +347,7 @@ class ProfileCVSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    cv = serializers.FileField(max_length=None, allow_empty_file=False)
     occupation = OccupationSerializer(read_only=True)
     occupation_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Occupation.objects.all())
     region_of_residence = RegionSerializer(read_only=True)
