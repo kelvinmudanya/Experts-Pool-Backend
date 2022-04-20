@@ -30,7 +30,8 @@ from core.serializers import CountrySerializer, RegionSerializer, CompetenceSeri
     OutbreakSerializer, ProfileDeploymentSerializer, ProfileRecommendationSerializer, ProfileSerializer, UserSerializer, \
     GroupSerializer, OutbreakOptionsSerializer, ProfileCVSerializer, CustomTokenObtainPairSerializer, \
     OccupationCategorySerializer, ProfileDeploymentMiniSerializer, OutbreakTypeSerializer, \
-    AcademicQualificationTypeSerializer, ProfileAcademicQualificationSerializer, AbstractDocumentSerializer
+    AcademicQualificationTypeSerializer, ProfileAcademicQualificationSerializer, AbstractDocumentSerializer, \
+    OutbreakReportSerializer
 from eac_rde_backend.settings import MEDIA_URL
 
 media_dir = MEDIA_URL.replace('/', '')
@@ -229,6 +230,8 @@ def handle_uploaded_file(f, storage_location):
 
 class OutbreakReportViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
+    queryset = Outbreak.objects.all()
+    serializer_class = OutbreakReportSerializer
     schema = ManualSchema(
         fields=[
             coreapi.Field(
@@ -255,14 +258,19 @@ class OutbreakReportViewSet(viewsets.ModelViewSet):
         else:
             file = request.FILES['report']
             now = timezone.now()
-            relative_dir = f"{media_dir}/outbreak_reports/{now:%Y%m%d}"
-            os.makedirs(relative_dir, exist_ok=True)
-            final_file_location = f"{relative_dir}/{outbreak.id}{file.name}"
-            handle_uploaded_file(file, final_file_location)
-            outbreak.report = final_file_location
+            reformatted_filename = f"{now:%Y%m%d%H%M%s}" + ''.join(file.name.strip()).replace(' ', '')
+            file.name = reformatted_filename
+            outbreak.report = file
             outbreak.save()
-        return Response({"outbreak_id": outbreak_id, "report": final_file_location}, )
-    # todo: add delete 
+        return Response({"outbreak_id": outbreak_id}, )
+
+    def destroy(self, request, *args, **kwargs):
+        outbreak = self.get_object()
+        if os.path.exists(outbreak.report.path):
+            os.remove(outbreak.report.path)
+        outbreak.report = ''
+        outbreak.save()
+        return Response({'Deleted Successfully'})
 
 
 class ProfileDeploymentReportViewSet(viewsets.ViewSet):
@@ -303,8 +311,10 @@ class ProfileDeploymentReportViewSet(viewsets.ViewSet):
         return Response({"profile_deployment_id": profile_deployment_id, "deployment_report": final_file_location}, )
 
 
-class ProfileCVViewSet(viewsets.ViewSet):
+class ProfileCVViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
+    queryset = Profile.objects.all()
+    serializer_class = ProfileCVSerializer
     # parser_classes = [MultiPartParser, FormParser]
     schema = ManualSchema(
         fields=[
@@ -340,27 +350,6 @@ class ProfileCVViewSet(viewsets.ViewSet):
         serializer = ProfileCVSerializer(profile)
         return Response(serializer.data)
 
-    def create(self, request):
-        profile_id = request.data['profile_id']
-        profile = get_object_or_404(Profile.objects.all(), pk=profile_id)
-
-        if 'cv' not in request.FILES:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        else:
-            file = request.FILES['cv']
-            now = timezone.now()
-            relative_dir = f"{media_dir}/cv/{now:%Y%m%d}"
-            os.makedirs(relative_dir, exist_ok=True)
-            reformatted_filename = ''.join(file.name.strip()).replace(' ', '')
-            # join concatenates all duplicated whitespace \n\t
-            # strip removes leading and trailing white spaces
-            # replace removes the empty spaces into
-            final_file_location = f"{relative_dir}/{profile.id}{reformatted_filename}"
-            handle_uploaded_file(file, final_file_location)
-            profile.cv = final_file_location
-            profile.save()
-        return Response({"profile_id": profile_id, "cv": final_file_location}, )
-
     def update(self, request, pk=None):
         cv = request.data['cv']
         profile = get_object_or_404(Profile.objects.all(), pk=pk)
@@ -369,11 +358,22 @@ class ProfileCVViewSet(viewsets.ViewSet):
         serializer = ProfileCVSerializer(profile)
         return Response(serializer.data)
 
+    def destroy(self, request, *args, **kwargs):
+        profile = self.get_object()
+        if os.path.exists(profile.cv.path):
+            os.remove(profile.cv.path)
+        profile.cv = ''
+        profile.save()
+        return Response({'Deleted Successfully'})
+
+
 '''
 Provide a list of RDEs registered within the system
 To Return a no paginated result set:
 pass no_page query param
 '''
+
+
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
@@ -519,6 +519,13 @@ class AbstractDocumentViewSet(viewsets.ModelViewSet):
     queryset = AbstractDocument.objects.all()
     permission_classes = [permissions.IsAdminUser]
     serializer_class = AbstractDocumentSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        abs_document = self.get_object()
+        if os.path.exists(abs_document.document.path):
+            os.remove(abs_document.document.path)
+        abs_document.delete()
+        return Response({'Deleted Successfully'})
 
 
 @decorators.api_view(["GET"])

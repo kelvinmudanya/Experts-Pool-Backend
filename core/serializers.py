@@ -1,6 +1,5 @@
 import base64
 import hashlib
-import os
 
 import pyotp
 from django.contrib.auth.hashers import make_password
@@ -313,18 +312,15 @@ class AbstractDocumentSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         document = validated_data.pop('document')
         now = timezone.now()
-        relative_dir = f"{media_dir}/abstract_reports/{now:%Y%m%d}"
-        os.makedirs(relative_dir, exist_ok=True)
-        reformatted_filename = ''.join(document.name.strip()).replace(' ', '')
-        final_file_location = f"{relative_dir}/{reformatted_filename}"
-        handle_uploaded_file(document, final_file_location)
-        abstract_doc_record = AbstractDocument.objects.create(document=document, **validated_data)
+        reformatted_filename = f"{now:%Y%m%d%H%M%s}" + ''.join(document.name.strip()).replace(' ', '')
+        document.name = reformatted_filename
+        abstract_doc_record = AbstractDocument.objects.create(**validated_data)
+        abstract_doc_record.document = document
         abstract_doc_record.save()
         return abstract_doc_record
 
 
 class ProfileCVSerializer(serializers.ModelSerializer):
-    cv = serializers.FileField(max_length=None, allow_empty_file=False)
     cv_upload_status = serializers.SerializerMethodField('get_cv_upload_status',
                                                          read_only=True)
     profile_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Profile.objects.all())
@@ -339,8 +335,11 @@ class ProfileCVSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         cv = validated_data.pop('cv')
-        profile_id = validated_data.profile_id
-        profile = Profile.objects.get(pk=profile_id)
+        now = timezone.now()
+        reformatted_filename = f"{now:%Y%m%d%H%M%s}" + ''.join(cv.name.strip()).replace(' ', '')
+        cv.name = reformatted_filename
+        print(cv)
+        profile = validated_data.pop('profile_id')
         profile.cv = cv
         profile.save()
         return Profile
@@ -509,6 +508,12 @@ class OutbreakTypeSerializer(serializers.ModelSerializer):
 
     def get_value(self, obj):
         return obj.id
+
+
+class OutbreakReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Outbreak
+        fields = ['report', 'id']
 
 
 class OutbreakSerializer(serializers.ModelSerializer):

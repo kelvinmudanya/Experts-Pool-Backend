@@ -157,8 +157,7 @@ class Profile(TimeStampedModel):
     id_type = models.CharField(max_length=100, choices=ID_TYPES)
     id_number = models.CharField(max_length=255)
     region_of_residence = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True)
-    # cv = models.FileField(upload_to='uploads/%Y/%m/%d/', black=True)
-    cv = models.FileField(blank=True, null=True)
+    cv = models.FileField(blank=True, null=True, upload_to='cvs/%Y/%m/%d/')
     active = models.BooleanField(default=True)
     available = models.BooleanField(default=False)
     note = models.TextField(blank=True)
@@ -259,7 +258,7 @@ class Outbreak(TimeStampedModel):
     eligibility_criteria = models.TextField(null=True, blank=True)
     requirements = models.JSONField(null=True, blank=True)
     other_information = models.JSONField(null=True, blank=True)
-    report = models.FileField(blank=True, null=True)
+    report = models.FileField(blank=True, null=True, upload_to='outbreak_reports/%Y/%m/%d/')
 
     def __str__(self):
         return f"{self.name}"
@@ -292,4 +291,4 @@ class AbstractDocument(TimeStampedModel):
     any public health event
     """
     name = models.CharField(max_length=255)  # name of the document
-    document = models.FileField()
+    document = models.FileField(upload_to='abstract_reports/%Y/%m/%d/')
