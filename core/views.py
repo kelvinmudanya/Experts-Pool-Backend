@@ -374,7 +374,9 @@ class ProfileViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     permission_classes = [permissions.IsAuthenticated, ProfileAuthenticatedCreateAndUpdateOwnerOnly]
-    search_fields = ['first_name', 'middle_name', 'last_name', 'gender', 'email', 'user__username', 'id_number']
+    search_fields = ['first_name', 'middle_name', 'phone',
+                     'last_name', 'gender', 'email',
+                     'user__username', 'id_number']
     schema = ManualSchema(
         fields=[
             coreapi.Field(
