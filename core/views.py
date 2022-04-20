@@ -392,6 +392,12 @@ class ProfileViewSet(viewsets.ModelViewSet):
                 schema=coreschema.String()
             ),
             coreapi.Field(
+                "country",
+                location='query',
+                required=False,
+                schema=coreschema.String()
+            ),
+            coreapi.Field(
                 "gender",
                 location='query',
                 required=False,
@@ -451,6 +457,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         region_of_residence = request.GET.getlist('region')
+        country = request.GET.getlist('country')
         occupation = request.GET.getlist('occupation')
         gender = request.GET.getlist('gender')
         religion = request.GET.getlist('religion')
@@ -462,6 +469,10 @@ class ProfileViewSet(viewsets.ModelViewSet):
         if len(region_of_residence) != 0:
             rde_profiles = rde_profiles.filter(
                 region_of_residence_id__in=region_of_residence,
+            )
+        if len(country) != 0:
+            rde_profiles = rde_profiles.filter(
+                region_of_residence__country_id__in=country,
             )
         if len(occupation) != 0:
             rde_profiles = rde_profiles.filter(
