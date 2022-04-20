@@ -264,6 +264,7 @@ class OutbreakReportViewSet(viewsets.ModelViewSet):
 
 class ProfileDeploymentReportViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
+
     schema = ManualSchema(
         fields=[
             coreapi.Field(
@@ -363,7 +364,11 @@ class ProfileCVViewSet(viewsets.ViewSet):
         serializer = ProfileCVSerializer(profile)
         return Response(serializer.data)
 
-
+'''
+Provide a list of RDEs registered within the system
+To Return a no paginated result set:
+pass no_page query param
+'''
 class ProfileViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
@@ -421,6 +426,12 @@ class ProfileViewSet(viewsets.ModelViewSet):
                 schema=coreschema.Integer()
             ),
         ])
+
+    def paginate_queryset(self, queryset, view=None):
+        if 'no_page' in self.request.query_params:
+            return None
+        else:
+            return self.paginator.paginate_queryset(queryset, self.request, view=self)
 
     def get_queryset(self):
         auth_user = self.request.user
