@@ -1,18 +1,29 @@
 import base64
 import hashlib
+import os
 
 import pyotp
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group
 from django.core.mail import send_mail
 from django.template.loader import get_template
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from core.models import Occupation, Country, Region, Competence, Profile, ProfileRecommendation, Outbreak, \
-    ProfileDeployment, User, OccupationCategory, OutbreakType, AcademicQualificationType, ProfileAcademicQualification
-from eac_rde_backend.settings import EMAIL_HOST_USER, APP_URL
+    ProfileDeployment, User, OccupationCategory, OutbreakType, AcademicQualificationType, ProfileAcademicQualification, \
+    AbstractDocument
+from eac_rde_backend.settings import EMAIL_HOST_USER, APP_URL, MEDIA_URL
+
+media_dir = MEDIA_URL.replace('/', '')
+
+
+def handle_uploaded_file(f, storage_location):
+    with open(storage_location, 'wb+') as storage_location:
+        for chunk in f.chunks():
+            storage_location.write(chunk)
 
 
 class CountrySerializer(serializers.ModelSerializer):
@@ -292,6 +303,24 @@ class ProfileRecommendationSerializer(serializers.ModelSerializer):
         recommendation = ProfileRecommendation.objects.create(author=author, **validated_data)
         recommendation.save()
         return recommendation
+
+
+class AbstractDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AbstractDocument
+        fields = '__all__'
+
+    def create(self, validated_data):
+        document = validated_data.pop('document')
+        now = timezone.now()
+        relative_dir = f"{media_dir}/abstract_reports/{now:%Y%m%d}"
+        os.makedirs(relative_dir, exist_ok=True)
+        reformatted_filename = ''.join(document.name.strip()).replace(' ', '')
+        final_file_location = f"{relative_dir}/{reformatted_filename}"
+        handle_uploaded_file(document, final_file_location)
+        abstract_doc_record = AbstractDocument.objects.create(document=document, **validated_data)
+        abstract_doc_record.save()
+        return abstract_doc_record
 
 
 class ProfileCVSerializer(serializers.ModelSerializer):

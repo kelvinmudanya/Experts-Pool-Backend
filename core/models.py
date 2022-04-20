@@ -64,7 +64,6 @@ class User(AbstractUser):
     email = models.EmailField(unique=True, max_length=255)
 
 
-
 COMPETENCE_TYPES = (
     ('language', 'LANGUAGE'),
     ('work', 'WORK')
@@ -285,3 +284,12 @@ class ProfileDeployment(TimeStampedModel):
 
     def __str__(self):
         return f"Deployment for {self.profile} is deployed on outbreak {self.outbreak}"
+
+
+class AbstractDocument(TimeStampedModel):
+    """
+    Stores documents tha the EAC may need to upload that are not related to
+    any public health event
+    """
+    name = models.CharField(max_length=255)  # name of the document
+    document = models.FileField()

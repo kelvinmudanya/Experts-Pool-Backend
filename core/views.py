@@ -22,14 +22,18 @@ from rest_framework.schemas import ManualSchema
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from core.models import Country, Region, Competence, Occupation, Outbreak, ProfileDeployment, ProfileRecommendation, \
-    Profile, User, OccupationCategory, OutbreakType, AcademicQualificationType, ProfileAcademicQualification
+    Profile, User, OccupationCategory, OutbreakType, AcademicQualificationType, ProfileAcademicQualification, \
+    AbstractDocument
 from core.permissions import AnonCreateAndUpdateOwnerOnly, AnonReadAdminCreate, \
     ProfileAuthenticatedCreateAndUpdateOwnerOnly, ProfileDeploymentAuthenticatedCreateAndUpdateOwnerOnly
 from core.serializers import CountrySerializer, RegionSerializer, CompetenceSerializer, OccupationSerializer, \
     OutbreakSerializer, ProfileDeploymentSerializer, ProfileRecommendationSerializer, ProfileSerializer, UserSerializer, \
     GroupSerializer, OutbreakOptionsSerializer, ProfileCVSerializer, CustomTokenObtainPairSerializer, \
     OccupationCategorySerializer, ProfileDeploymentMiniSerializer, OutbreakTypeSerializer, \
-    AcademicQualificationTypeSerializer, ProfileAcademicQualificationSerializer
+    AcademicQualificationTypeSerializer, ProfileAcademicQualificationSerializer, AbstractDocumentSerializer
+from eac_rde_backend.settings import MEDIA_URL
+
+media_dir = MEDIA_URL.replace('/', '')
 
 
 @decorators.api_view(['GET'])
@@ -251,7 +255,6 @@ class OutbreakReportViewSet(viewsets.ModelViewSet):
         else:
             file = request.FILES['report']
             now = timezone.now()
-            media_dir = "media"
             relative_dir = f"{media_dir}/outbreak_reports/{now:%Y%m%d}"
             os.makedirs(relative_dir, exist_ok=True)
             final_file_location = f"{relative_dir}/{outbreak.id}{file.name}"
@@ -291,7 +294,6 @@ class ProfileDeploymentReportViewSet(viewsets.ViewSet):
         else:
             file = request.FILES['deployment_report']
             now = timezone.now()
-            media_dir = "media"
             relative_dir = f"{media_dir}/deployment_reports/{now:%Y%m%d}"
             os.makedirs(relative_dir, exist_ok=True)
             final_file_location = f"{relative_dir}/{profile_deployment.id}{file.name}"
@@ -347,10 +349,13 @@ class ProfileCVViewSet(viewsets.ViewSet):
         else:
             file = request.FILES['cv']
             now = timezone.now()
-            media_dir = "media"
             relative_dir = f"{media_dir}/cv/{now:%Y%m%d}"
             os.makedirs(relative_dir, exist_ok=True)
-            final_file_location = f"{relative_dir}/{profile.id}{file.name}"
+            reformatted_filename = ''.join(file.name.strip()).replace(' ', '')
+            # join concatenates all duplicated whitespace \n\t
+            # strip removes leading and trailing white spaces
+            # replace removes the empty spaces into
+            final_file_location = f"{relative_dir}/{profile.id}{reformatted_filename}"
             handle_uploaded_file(file, final_file_location)
             profile.cv = final_file_location
             profile.save()
@@ -508,6 +513,12 @@ class ProfileViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
+class AbstractDocumentViewSet(viewsets.ModelViewSet):
+    queryset = AbstractDocument.objects.all()
+    permission_classes = [permissions.IsAdminUser]
+    serializer_class = AbstractDocumentSerializer
 
 
 @decorators.api_view(["GET"])
