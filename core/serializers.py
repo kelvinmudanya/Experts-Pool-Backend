@@ -400,7 +400,12 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         competencies = validated_data.pop('competencies_list', None)
+        occupation = validated_data.pop('occupation_id', instance.occupation)
+        region_of_residence = validated_data.pop('region_of_residence_id', instance.region_of_residence)
+
         profile = super().update(instance, validated_data)
+        profile.occupation = occupation
+        profile.region_of_residence = region_of_residence
         profile.save()
         if competencies is not None:
             profile.competencies.clear()
