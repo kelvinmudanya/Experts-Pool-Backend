@@ -321,6 +321,7 @@ class AbstractDocumentSerializer(serializers.ModelSerializer):
 
 
 class ProfileCVSerializer(serializers.ModelSerializer):
+    cv = serializers.FileField(max_length=None, allow_empty_file=False)
     cv_upload_status = serializers.SerializerMethodField('get_cv_upload_status',
                                                          read_only=True)
     profile_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Profile.objects.all())
