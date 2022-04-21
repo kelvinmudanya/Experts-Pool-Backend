@@ -322,7 +322,6 @@ class AbstractDocumentSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         document = validated_data.pop('document', None)
         abs_document = super().update(instance, validated_data)
-
         if document is not None:
             now = timezone.now()
             reformatted_filename = f"{now:%Y%m%d%H%M%s}" + ''.join(document.name.strip()).replace(' ', '')

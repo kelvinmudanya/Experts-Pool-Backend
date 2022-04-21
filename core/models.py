@@ -291,4 +291,4 @@ class AbstractDocument(TimeStampedModel):
     any public health event
     """
     name = models.CharField(max_length=255)  # name of the document
-    document = models.FileField(upload_to='abstract_reports/%Y/%m/%d/')
+    document = models.FileField(upload_to='abstract_reports/%Y/%m/%d/', null=True, blank=True)
