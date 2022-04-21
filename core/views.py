@@ -637,6 +637,8 @@ class ProfileDeploymentsViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         auth_user = self.request.user
         if auth_user.attached_region is not None:
+            if auth_user.level == 'rde':
+                return ProfileDeployment.objects.filter(profile__user=auth_user)
             if auth_user.level == 'eac':
                 return ProfileDeployment.objects.all()
             else:
