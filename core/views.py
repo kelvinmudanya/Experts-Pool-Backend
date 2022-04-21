@@ -576,43 +576,6 @@ def get_profile_deployments(request, profile_id=None):
     return Response(ProfileDeploymentSerializer(deployments, many=True).data)
 
 
-# class RdeSuggestionViewSet(viewsets.ModelViewSet):
-#     queryset = Profile.objects.all()
-#     serializer_class = ProfileSerializer
-#
-#     # @action(detail=True, methods=['post'])
-#     # def retrieve(self, request, *args, **kwargs):
-#     #     pass
-#     #
-#     # @action(detail=True, methods=['patch'])
-#     # def partial_update(self, request, *args, **kwargs):
-#     #     pass
-#     #
-#     # @action(detail=True, methods=['put'])
-#     # def update(self, request, *args, **kwargs):
-#     #     pass
-#     #
-#     # @action(detail=True, methods=['delete'])
-#     # def delete(self, request, *args, **kwargs):
-#     #     pass
-#
-#     @action(detail=False, methods=['post'])
-#     def suggest_rde_list(self, request):
-#         try:
-#             competencies = request.data['competencies']
-#         except KeyError:
-#             competencies = []
-#         suggested_profiles = Profile.objects.filter(competencies__in=competencies)
-#
-#         ## adding pagination
-#         # page = self.paginate_queryset(recent_users)
-#         # if page is not None:
-#         #     serializer = self.get_serializer(page, many=True)
-#         #     return self.get_paginated_response(serializer.data)
-#         serializer = self.get_serializer(suggested_profiles, many=True)
-#         return Response(serializer.data)
-#
-
 class ProfileRecommendationViewSet(viewsets.ModelViewSet):
     queryset = ProfileRecommendation.objects.all()
     serializer_class = ProfileRecommendationSerializer

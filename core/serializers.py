@@ -319,6 +319,18 @@ class AbstractDocumentSerializer(serializers.ModelSerializer):
         abstract_doc_record.save()
         return abstract_doc_record
 
+    def update(self, instance, validated_data):
+        document = validated_data.pop('document', None)
+        abs_document = super().update(instance, validated_data)
+
+        if document is not None:
+            now = timezone.now()
+            reformatted_filename = f"{now:%Y%m%d%H%M%s}" + ''.join(document.name.strip()).replace(' ', '')
+            document.name = reformatted_filename
+            abs_document.document = document
+        abs_document.save()
+        return abs_document
+
 
 class ProfileCVSerializer(serializers.ModelSerializer):
     cv = serializers.FileField(max_length=None, allow_empty_file=False)
