@@ -412,11 +412,14 @@ class ProfileSerializer(serializers.ModelSerializer):
         return CompetenceSerializer(obj.competencies, many=True).data
 
     def validate(self, data):
-        date_of_birth = data['date_of_birth']
-        age = datetime.date.today() - date_of_birth
-        if age < datetime.timedelta(days=18 * 365) or datetime.timedelta(days=75 * 365) < age:
-            raise serializers.ValidationError({"date_of_birth": "age must be between 18 and 75"})
-        return data
+        try:
+            date_of_birth = data['date_of_birth']
+            age = datetime.date.today() - date_of_birth
+            if age < datetime.timedelta(days=18 * 365) or datetime.timedelta(days=75 * 365) < age:
+                raise serializers.ValidationError({"date_of_birth": "age must be between 18 and 75"})
+            return data
+        except KeyError:
+            return data
 
     def create(self, validated_data):
         competencies = validated_data.pop('competencies', None)
