@@ -43,6 +43,7 @@ def confirm_email(request, username=None, otp=None):
     if user is None:
         raise serializers.ValidationError("Could not find the specified user due to bad otp or username")
     user.is_active = True
+    user.email_confirmed = True
     user.otp_used = True
     user.save()
     return Response('Email Verified Successfully')

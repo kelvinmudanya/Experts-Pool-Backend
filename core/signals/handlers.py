@@ -29,9 +29,14 @@ def profile_recommendation_saved(sender, instance, **kwargs):
 def profile_deployment_saved(sender, instance, **kwargs):
     email_text = "There are new deployment requests on your profile. Please login to accept or reject"
     subject_text = 'New deployment requests on your profile'
-    if instance.accepted_by_user and instance.status == 'initiated':
-        email_text = f"Your deployment for {instance.outbreak.name} has been confirmed."
+    if instance.accepted_by_user and instance.status == 'accepted':
+        email_text = f"You have accepted deployment for {instance.outbreak.name}. " \
+                     f"You have entered the Pre Deployment stage for {instance.outbreak.name}."
         subject_text = 'Deployment Accepted'
+    if instance.accepted_by_user and instance.status == 'accepted':
+        email_text = f"You have accepted deployment for {instance.outbreak.name}."
+        subject_text = 'Deployment Accepted'
+
     if instance.status == 'ended' and instance.deployment_report is None:
         email_text = f"Your deployment for {instance.outbreak.name} has been {instance.status}. \n" \
                      f"Please upload a deployment report against your outbreak. \n" \

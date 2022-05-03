@@ -58,7 +58,8 @@ class User(AbstractUser):
     level = models.CharField(max_length=50, choices=LEVEL, blank=True, null=True, default='rde')
     attached_region = models.ForeignKey(Region, on_delete=models.CASCADE, null=True, blank=True)
     other_region = models.CharField(max_length=500, blank=True, null=True)
-    is_active = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    email_confirmed = models.BooleanField(default=False)
     otp = models.CharField(default=1234, max_length=255)
     otp_used = models.BooleanField(default=False)
     email = models.EmailField(unique=True, max_length=255)
@@ -73,6 +74,7 @@ COMPETENCE_TYPES = (
 class Competence(TimeStampedModel):
     name = models.CharField(max_length=255)
     type = models.CharField(choices=COMPETENCE_TYPES, max_length=100, default='work')
+    description = models.TextField(null=True, blank=True)
 
     class Meta:
         """Meta definition for Competence."""
@@ -127,8 +129,8 @@ GENDER_TYPES = (
 
 APPLICATION_STATUS = (
     ('pending_approval', 'Pending Approval'),
-    ('approval_complete', 'Approval Complete'),
-    ('rejected', 'Rejected')
+    ('rejected', 'Rejected'),
+    ('approval_complete', 'Approval Complete')
 )
 
 
@@ -158,6 +160,7 @@ class Profile(TimeStampedModel):
     id_number = models.CharField(max_length=255)
     region_of_residence = models.ForeignKey(Region, on_delete=models.SET_NULL, null=True)
     cv = models.FileField(blank=True, null=True, upload_to='cvs/%Y/%m/%d/')
+    passport_photo = models.FileField(blank=True, null=True, upload_to='passport/%Y/%m/%d/')
     active = models.BooleanField(default=True)
     available = models.BooleanField(default=False)
     note = models.TextField(blank=True)
@@ -266,6 +269,8 @@ class Outbreak(TimeStampedModel):
 
 deployment_status = (
     ('initiated', 'Initiated'),
+    ('pre_deployment', 'Pre Deployment'),
+    ('deployed', 'Deployed'),
     ('ended', 'Ended')
 )
 
@@ -276,7 +281,7 @@ class ProfileDeployment(TimeStampedModel):
     start_date = models.DateField(auto_now=False)
     end_date = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=100, choices=deployment_status, default='initiated')
-    region = models.ForeignKey(Region, on_delete=models.CASCADE, default=1)
+    region = models.ForeignKey(Region, on_delete=models.CASCADE)
     accepted_by_user = models.BooleanField(null=True, default=False)
     rejected_by_user = models.BooleanField(null=True, default=False)
     deployment_report = models.FileField(blank=True, null=True)

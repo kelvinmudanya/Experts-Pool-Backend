@@ -10,11 +10,11 @@ from core.models import User, Country, Region, Competence, Occupation, Profile, 
 class CustomUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
         ("Other Fields", {'fields': ('phone_number', 'staff_number', 'level',
-                                     'attached_region', 'otp', 'otp_used')}),
+                                     'attached_region', 'otp', 'otp_used', 'email_confirmed')}),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
         ("Other Fields", {'fields': ('phone_number', 'staff_number', 'level',
-                                     'attached_region', 'otp', 'otp_used')}),
+                                     'attached_region', 'otp', 'otp_used', 'email_confirmed')}),
     )
 
 

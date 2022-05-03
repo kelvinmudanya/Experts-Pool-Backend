@@ -1,4 +1,5 @@
 import base64
+import datetime
 import hashlib
 
 import pyotp
@@ -204,7 +205,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'first_name', 'last_name', 'username',
-                  'password', 'phone_number', 'groups', 'groups_objects',
+                  'password', 'phone_number', 'groups', 'groups_objects', 'email_confirmed',
                   'staff_number', 'attached_region_id', 'other_region', 'attached_region', 'email']
 
     def get_groups_objects(self, obj):
@@ -390,7 +391,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = Profile
         fields = [
             'id', 'first_name', 'middle_name', 'last_name', 'gender', 'religion', 'occupation',
-            'occupation_id', 'date_of_birth', 'next_of_kin',
+            'occupation_id', 'date_of_birth', 'next_of_kin', "passport_photo",
             'email', 'phone', 'user', 'id_type', 'id_number', 'region_of_residence',
             'region_of_residence_id', 'cv', 'cv_upload_status', 'active', 'available', 'note',
             'application_status', 'competencies', 'competencies_objects', 'recommendations',
@@ -409,6 +410,13 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def get_competencies_objects(self, obj):
         return CompetenceSerializer(obj.competencies, many=True).data
+
+    def validate(self, data):
+        date_of_birth = data['date_of_birth']
+        age = datetime.date.today() - date_of_birth
+        if age < datetime.timedelta(days=18 * 365) or datetime.timedelta(days=75 * 365) < age:
+            raise serializers.ValidationError({"date_of_birth": "age must be between 18 and 75"})
+        return data
 
     def create(self, validated_data):
         competencies = validated_data.pop('competencies', None)
@@ -691,6 +699,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
         token['full_name'] = user.get_full_name()
         token['username'] = user.username
+        token['email_confirmed'] = user.email_confirmed
         token['id'] = user.id
         token['level'] = user.level
         token[
