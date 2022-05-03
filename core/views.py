@@ -39,13 +39,12 @@ media_dir = MEDIA_URL.replace('/', '')
 
 @decorators.api_view(['GET'])
 def confirm_email(request, username=None, otp=None):
-    user = User.objects.filter(username=username, otp=otp, otp_used=False).first()
-    if user is None:
+    usr = User.objects.filter(username=username, otp=otp, otp_used=False).first()
+    if usr is None:
         raise serializers.ValidationError("Could not find the specified user due to bad otp or username")
-    user.is_active = True
-    user.email_confirmed = True
-    user.otp_used = True
-    user.save()
+    usr.email_confirmed = True
+    usr.otp_used = True
+    usr.save()
     return Response('Email Verified Successfully')
 
 
