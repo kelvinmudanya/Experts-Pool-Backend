@@ -533,7 +533,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
                     profile.occupation, profile.date_of_birth, profile.next_of_kin, profile.email,
                     profile.phone, profile.id_type, profile.id_number, profile.region_of_residence.name,
                     True if profile.active else False, profile.available, profile.note, profile.application_status,
-                    profile.competencies, profile.deployments.filter(status='deployed').first(),
+                    profile.competencies, profile.deployments.filter(status='deployed').first().outbreak.name,
                 ])
             return response
 
