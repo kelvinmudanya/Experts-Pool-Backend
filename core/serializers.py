@@ -394,7 +394,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'occupation_id', 'date_of_birth', 'next_of_kin', "passport_photo",
             'email', 'phone', 'user', 'id_type', 'id_number', 'region_of_residence',
             'region_of_residence_id', 'cv', 'cv_upload_status', 'active', 'available', 'note',
-            'application_status', 'competencies', 'competencies_objects', 'recommendations',
+            'application_status', 'competencies', 'other_occupation', 'competencies_objects', 'recommendations',
             'active_deployments', 'current_deployment', 'references', 'professional_experience',
             'previous_deployment_experience'
         ]

@@ -148,7 +148,7 @@ class Profile(TimeStampedModel):
     gender = models.CharField(choices=GENDER_TYPES, max_length=1)
     occupation = models.ForeignKey(Occupation, on_delete=models.SET_NULL,
                                    blank=True, null=True)
-
+    other_occupation = models.CharField(max_length=255, null=True, blank=True)
     date_of_birth = models.DateField()
     next_of_kin = models.JSONField(blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
