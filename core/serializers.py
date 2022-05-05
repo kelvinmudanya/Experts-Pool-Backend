@@ -205,7 +205,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'first_name', 'last_name', 'username',
-                  'password', 'phone_number', 'groups', 'groups_objects', 'email_confirmed',
+                  'password', 'phone_number', 'groups', 'groups_objects', 'email_verified',
                   'staff_number', 'attached_region_id', 'other_region', 'attached_region', 'email']
 
     def get_groups_objects(self, obj):
@@ -702,7 +702,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
         token['full_name'] = user.get_full_name()
         token['username'] = user.username
-        token['email_confirmed'] = user.email_confirmed
+        token['email_verified'] = user.email_verified
         token['id'] = user.id
         token['level'] = user.level
         token[

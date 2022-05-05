@@ -42,7 +42,7 @@ def confirm_email(request, username=None, otp=None):
     usr = User.objects.filter(username=username, otp=otp, otp_used=False).first()
     if usr is None:
         raise serializers.ValidationError("Could not find the specified user due to bad otp or username")
-    usr.email_confirmed = True
+    usr.email_verified = True
     usr.otp_used = True
     usr.save()
     return Response('Email Verified Successfully')
@@ -180,6 +180,7 @@ class CompetenceViewSet(viewsets.ModelViewSet):
     queryset = Competence.objects.all()
     serializer_class = CompetenceSerializer
     permission_classes = [AnonReadAdminCreate]
+    filterset_fields = ['type']
     pagination_class = None
 
 

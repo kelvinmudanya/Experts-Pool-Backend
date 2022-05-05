@@ -59,7 +59,7 @@ class User(AbstractUser):
     attached_region = models.ForeignKey(Region, on_delete=models.CASCADE, null=True, blank=True)
     other_region = models.CharField(max_length=500, blank=True, null=True)
     is_active = models.BooleanField(default=True)
-    email_confirmed = models.BooleanField(default=False)
+    email_verified = models.BooleanField(default=False)
     otp = models.CharField(default=1234, max_length=255)
     otp_used = models.BooleanField(default=False)
     email = models.EmailField(unique=True, max_length=255)
