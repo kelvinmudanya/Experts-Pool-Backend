@@ -1,4 +1,5 @@
 import base64
+import csv
 import hashlib
 import os
 
@@ -10,6 +11,7 @@ from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.auth.models import Group
 from django.core.mail import send_mail
 from django.db.models import Count
+from django.http import HttpResponse
 from django.template.loader import get_template
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -386,6 +388,12 @@ class ProfileViewSet(viewsets.ModelViewSet):
     schema = ManualSchema(
         fields=[
             coreapi.Field(
+                "output",
+                location='query',
+                required=False,
+                schema=coreschema.String()
+            ),
+            coreapi.Field(
                 "search",
                 location='query',
                 required=False,
@@ -470,6 +478,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
         application_status = request.GET.getlist('application_status')
         academic_degree = request.GET.getlist('academic_degree')
         competencies = request.GET.getlist('competencies')
+        output = request.GET.get('output')
         rde_profiles = self.filter_queryset(self.get_queryset())
 
         if len(region_of_residence) != 0:
@@ -507,6 +516,27 @@ class ProfileViewSet(viewsets.ModelViewSet):
             rde_profiles = rde_profiles.filter(
                 competencies__in=competencies
             )
+
+        if output == 'csv':
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="rde_profiles.csv"'
+
+            writer = csv.writer(response)
+            writer.writerow(["id", "name", "gender", "religion",
+                             "occupation", "date_of_birth", "next_of_kin",
+                             "email", "phone", "id_type", "id_number", "region_of_residence",
+                             "active", "available", "note", "application_status",
+                             "competencies", "current_deployment"])
+            for profile in rde_profiles:
+                writer.writerow([
+                    profile.id, f"{profile.first_name} {profile.last_name}", profile.gender, profile.religion,
+                    profile.occupation, profile.date_of_birth, profile.next_of_kin, profile.email,
+                    profile.phone, profile.id_type, profile.id_number, profile.region_of_residence.name,
+                    True if profile.active else False, profile.available, profile.note, profile.application_status,
+                    profile.competencies, profile.deployments.filter(status='deployed').first(),
+                ])
+            return response
+
         queryset = rde_profiles
         page = self.paginate_queryset(queryset)
         if page is not None:
