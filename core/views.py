@@ -25,7 +25,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from core.models import Country, Region, Competence, Occupation, Outbreak, ProfileDeployment, ProfileRecommendation, \
     Profile, User, OccupationCategory, OutbreakType, AcademicQualificationType, ProfileAcademicQualification, \
-    AbstractDocument
+    AbstractDocument, Specialization
 from core.permissions import AnonCreateAndUpdateOwnerOnly, AnonReadAdminCreate, \
     ProfileAuthenticatedCreateAndUpdateOwnerOnly, ProfileDeploymentAuthenticatedCreateAndUpdateOwnerOnly
 from core.serializers import CountrySerializer, RegionSerializer, CompetenceSerializer, OccupationSerializer, \
@@ -33,7 +33,7 @@ from core.serializers import CountrySerializer, RegionSerializer, CompetenceSeri
     GroupSerializer, OutbreakOptionsSerializer, ProfileCVSerializer, CustomTokenObtainPairSerializer, \
     OccupationCategorySerializer, ProfileDeploymentMiniSerializer, OutbreakTypeSerializer, \
     AcademicQualificationTypeSerializer, ProfileAcademicQualificationSerializer, AbstractDocumentSerializer, \
-    OutbreakReportSerializer
+    OutbreakReportSerializer, SpecializationSerializer
 from eac_rde_backend.settings import MEDIA_URL
 
 media_dir = MEDIA_URL.replace('/', '')
@@ -182,13 +182,22 @@ class CompetenceViewSet(viewsets.ModelViewSet):
     queryset = Competence.objects.all()
     serializer_class = CompetenceSerializer
     permission_classes = [AnonReadAdminCreate]
-    filterset_fields = ['type']
+    filterset_fields = ['type', 'specialization']
     pagination_class = None
 
 
 class OccupationViewSet(viewsets.ModelViewSet):
     queryset = Occupation.objects.all()
     serializer_class = OccupationSerializer
+    filterset_fields = {'occupation_category'}
+    permission_classes = [AnonReadAdminCreate]
+    pagination_class = None
+
+
+class SpecializationViewSet(viewsets.ModelViewSet):
+    queryset = Specialization.objects.all()
+    serializer_class = SpecializationSerializer
+    filterset_fields = {'occupation'}
     permission_classes = [AnonReadAdminCreate]
     pagination_class = None
 

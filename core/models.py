@@ -71,20 +71,6 @@ COMPETENCE_TYPES = (
 )
 
 
-class Competence(TimeStampedModel):
-    name = models.CharField(max_length=255)
-    type = models.CharField(choices=COMPETENCE_TYPES, max_length=100, default='work')
-    description = models.TextField(null=True, blank=True)
-
-    class Meta:
-        """Meta definition for Competence."""
-
-        verbose_name = 'Competence'
-        verbose_name_plural = 'Competencies'
-
-    def __str__(self):
-        return f"{self.name}"
-
 
 class OccupationCategory(TimeStampedModel):
     name = models.CharField(max_length=255)
@@ -111,6 +97,36 @@ class Occupation(TimeStampedModel):
 
         verbose_name = 'Occupation'
         verbose_name_plural = 'Occupations'
+
+
+class Specialization(TimeStampedModel):
+    name = models.CharField(max_length=255)
+    occupation = models.ForeignKey(Occupation, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return f"{self.name}"
+
+    class Meta:
+        """Meta definition for Occupation."""
+
+        verbose_name = 'Specialization'
+        verbose_name_plural = 'Specializations'
+
+
+class Competence(TimeStampedModel):
+    name = models.CharField(max_length=255)
+    type = models.CharField(choices=COMPETENCE_TYPES, max_length=100, default='work')
+    description = models.TextField(null=True, blank=True)
+    specialization = models.ForeignKey(Specialization, on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        """Meta definition for Competence."""
+
+        verbose_name = 'Competence'
+        verbose_name_plural = 'Competencies'
+
+    def __str__(self):
+        return f"{self.name}"
 
 
 ID_TYPES = (
@@ -169,6 +185,7 @@ class Profile(TimeStampedModel):
     competencies = models.ManyToManyField(Competence)
     references = models.JSONField(blank=True, null=True)
     professional_experience = models.JSONField(blank=True, null=True)
+    managerial_experience = models.JSONField(blank=True, null=True)
     previous_deployment_experience = models.JSONField(blank=True, null=True)
 
     class Meta:

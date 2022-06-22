@@ -130,6 +130,23 @@ class CompetenceSerializer(serializers.ModelSerializer):
         return obj.name
 
 
+class SpecializationSerializer(serializers.ModelSerializer):
+    value = serializers.SerializerMethodField('get_value',
+                                              read_only=True)
+    label = serializers.SerializerMethodField('get_label',
+                                              read_only=True)
+
+    class Meta:
+        model = Competence
+        fields = '__all__'
+
+    def get_value(self, obj):
+        return obj.id
+
+    def get_label(self, obj):
+        return obj.name
+
+
 class OccupationCategorySerializer(serializers.ModelSerializer):
     value = serializers.SerializerMethodField('get_value',
                                               read_only=True)
@@ -396,7 +413,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'region_of_residence_id', 'cv', 'cv_upload_status', 'active', 'available', 'note',
             'application_status', 'competencies', 'other_occupation', 'competencies_objects', 'recommendations',
             'active_deployments', 'current_deployment', 'references', 'professional_experience',
-            'previous_deployment_experience'
+            'managerial_experience', 'previous_deployment_experience'
         ]
         extra_kwargs = {
             'cv': {'write_only': True}
