@@ -203,6 +203,33 @@ class Profile(TimeStampedModel):
                f"{self.region_of_residence}. Application is {self.application_status}"
 
 
+DETAILED_EXPERIENCE_TYPE = (
+    ('managerial_experience', 'Managerial Experience'),
+    ('professional_experience', 'Professional Experience'),
+)
+
+YEARS_OF_EXPERIENCE = (
+    ('1-4', '1 To 4 Years'),
+    ('5-10', '5 To 10 Years'),
+    ('over-10', 'Over 10 Years')
+)
+
+NO_OF_PEOPLE_MANAGED = (
+    ('1-4', '1 To 4 People'),
+    ('5-10', '5 To 10 People'),
+    ('10-20', '10 To 20 Years'),
+    ('over-20', 'Over 20 Years')
+)
+
+
+class DetailedExperience(TimeStampedModel):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, null=True)
+    occupation = models.ForeignKey(Occupation, on_delete=models.CASCADE, null=True)
+    experience_type = models.CharField(max_length=255, choices=DETAILED_EXPERIENCE_TYPE)
+    years_of_experience = models.CharField(max_length=255, choices=YEARS_OF_EXPERIENCE)
+    no_of_people_managed = models.CharField(max_length=255, choices=NO_OF_PEOPLE_MANAGED, blank=True, null=True)
+
+
 class ProfileAcademicQualification(TimeStampedModel):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='profile_academic_qualifications')
     qualification_type = models.ForeignKey(AcademicQualificationType, on_delete=models.SET_NULL, null=True)

@@ -25,7 +25,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from core.models import Country, Region, Competence, Occupation, Outbreak, ProfileDeployment, ProfileRecommendation, \
     Profile, User, OccupationCategory, OutbreakType, AcademicQualificationType, ProfileAcademicQualification, \
-    AbstractDocument, Specialization
+    AbstractDocument, Specialization, DetailedExperience
 from core.permissions import AnonCreateAndUpdateOwnerOnly, AnonReadAdminCreate, \
     ProfileAuthenticatedCreateAndUpdateOwnerOnly, ProfileDeploymentAuthenticatedCreateAndUpdateOwnerOnly
 from core.serializers import CountrySerializer, RegionSerializer, CompetenceSerializer, OccupationSerializer, \
@@ -33,7 +33,7 @@ from core.serializers import CountrySerializer, RegionSerializer, CompetenceSeri
     GroupSerializer, OutbreakOptionsSerializer, ProfileCVSerializer, CustomTokenObtainPairSerializer, \
     OccupationCategorySerializer, ProfileDeploymentMiniSerializer, OutbreakTypeSerializer, \
     AcademicQualificationTypeSerializer, ProfileAcademicQualificationSerializer, AbstractDocumentSerializer, \
-    OutbreakReportSerializer, SpecializationSerializer
+    OutbreakReportSerializer, SpecializationSerializer, DetailedExperienceSerializer
 from eac_rde_backend.settings import MEDIA_URL
 
 media_dir = MEDIA_URL.replace('/', '')
@@ -190,6 +190,13 @@ class OccupationViewSet(viewsets.ModelViewSet):
     queryset = Occupation.objects.all()
     serializer_class = OccupationSerializer
     filterset_fields = {'occupation_category'}
+    permission_classes = [AnonReadAdminCreate]
+    pagination_class = None
+
+
+class DetailedExperienceViewSet(viewsets.ModelViewSet):
+    queryset = DetailedExperience.objects.all()
+    serializer_class = DetailedExperienceSerializer
     permission_classes = [AnonReadAdminCreate]
     pagination_class = None
 

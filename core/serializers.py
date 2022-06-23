@@ -14,7 +14,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from core.models import Occupation, Country, Region, Competence, Profile, ProfileRecommendation, Outbreak, \
     ProfileDeployment, User, OccupationCategory, OutbreakType, AcademicQualificationType, ProfileAcademicQualification, \
-    AbstractDocument
+    AbstractDocument, DetailedExperience
 from eac_rde_backend.settings import EMAIL_HOST_USER, APP_URL, MEDIA_URL
 
 media_dir = MEDIA_URL.replace('/', '')
@@ -77,6 +77,17 @@ class AcademicQualificationTypeSerializer(serializers.ModelSerializer):
 
     def get_label(self, obj):
         return obj.degree_level
+
+
+class DetailedExperienceSerializer(serializers.ModelSerializer):
+    occupation_name = serializers.SerializerMethodField('get_experience_name', read_only=True)
+
+    def get_experience_name(self, obj):
+        return obj.occupation.name
+
+    class Meta:
+        model = DetailedExperience
+        fields = "__all__"
 
 
 class RegionSerializer(serializers.ModelSerializer):
@@ -407,6 +418,7 @@ class ProfileCVSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    detailed_experience = serializers.SerializerMethodField('get_detailed_experience', read_only=True)
     occupation = OccupationSerializer(read_only=True)
     occupation_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Occupation.objects.all())
     region_of_residence = RegionSerializer(read_only=True)
@@ -423,6 +435,9 @@ class ProfileSerializer(serializers.ModelSerializer):
                                                          read_only=True)
     active_deployments = serializers.SerializerMethodField('get_active_deployments', read_only=True)
     current_deployment = serializers.SerializerMethodField('get_current_deployment', read_only=True)
+
+    def get_detailed_experience(self, obj):
+        return DetailedExperienceSerializer(DetailedExperience.objects.filter(profile_id=obj.id).all(), many=True).data
 
     def get_cv_upload_status(self, obj):
         return True if obj.cv else False
@@ -443,7 +458,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             'email', 'phone', 'user', 'id_type', 'id_number', 'region_of_residence',
             'region_of_residence_id', 'cv', 'cv_upload_status', 'active', 'available', 'note',
             'application_status', 'competencies', 'other_occupation', 'competencies_objects', 'recommendations',
-            'active_deployments', 'current_deployment', 'references', 'professional_experience',
+            'active_deployments', 'current_deployment', 'references', 'professional_experience', 'detailed_experience',
             'managerial_experience', 'previous_deployment_experience'
         ]
         extra_kwargs = {
