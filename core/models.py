@@ -182,7 +182,7 @@ class Profile(TimeStampedModel):
     note = models.TextField(blank=True)
     religion = models.CharField(max_length=150, null=True, blank=True)
     application_status = models.CharField(max_length=255, choices=APPLICATION_STATUS, default='pending_approval')
-    competencies = models.ManyToManyField(Competence)
+    competencies = models.ManyToManyField(Competence, blank=True, null=True)
     references = models.JSONField(blank=True, null=True)
     professional_experience = models.JSONField(blank=True, null=True)
     managerial_experience = models.JSONField(blank=True, null=True)

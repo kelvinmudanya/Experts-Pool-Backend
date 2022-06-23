@@ -130,6 +130,37 @@ class CompetenceSerializer(serializers.ModelSerializer):
         return obj.name
 
 
+class DetailedCompetenceSerializer(serializers.ModelSerializer):
+    value = serializers.SerializerMethodField('get_value',
+                                              read_only=True)
+    label = serializers.SerializerMethodField('get_label',
+                                              read_only=True)
+
+    specialization_name = serializers.SerializerMethodField('get_specialization_name', read_only=True)
+    occupation_name = serializers.SerializerMethodField('get_occupation_name', read_only=True)
+    occupation_category_name = serializers.SerializerMethodField('get_occupation_category_name', read_only=True)
+
+    class Meta:
+        model = Competence
+        fields = ['name', 'type', 'description', 'specialization', 'specialization_id', 'value',
+                  'label', 'specialization_name', 'occupation_name', 'occupation_category_name']
+
+    def get_specialization_name(self, obj):
+        return obj.specialization.name
+
+    def get_occupation_name(self, obj):
+        return obj.specialization.occupation.name
+
+    def get_occupation_category_name(self, obj):
+        return obj.specialization.occupation.occupation_category.name
+
+    def get_value(self, obj):
+        return obj.id
+
+    def get_label(self, obj):
+        return obj.name
+
+
 class SpecializationSerializer(serializers.ModelSerializer):
     value = serializers.SerializerMethodField('get_value',
                                               read_only=True)
@@ -426,7 +457,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         ]
 
     def get_competencies_objects(self, obj):
-        return CompetenceSerializer(obj.competencies, many=True).data
+        return DetailedCompetenceSerializer(obj.competencies, many=True).data
 
     def validate(self, data):
         try:
