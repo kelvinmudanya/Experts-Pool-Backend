@@ -215,8 +215,8 @@ LANGUAGE_PROFICIENCY_LEVEL = (
 
 
 class ProfileLanguage(TimeStampedModel):
-    profile = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True, blank=True)
-    language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, blank=True)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    language = models.ForeignKey(Language, on_delete=models.CASCADE, default=1)
     proficiency_level = models.CharField(max_length=255, choices=LANGUAGE_PROFICIENCY_LEVEL)
 
     def __str__(self):
