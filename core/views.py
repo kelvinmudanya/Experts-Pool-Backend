@@ -25,7 +25,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from core.models import Country, Region, Competence, Occupation, Outbreak, ProfileDeployment, ProfileRecommendation, \
     Profile, User, OccupationCategory, OutbreakType, AcademicQualificationType, ProfileAcademicQualification, \
-    AbstractDocument, Specialization, DetailedExperience
+    AbstractDocument, Specialization, DetailedExperience, ProfileLanguage, Language
 from core.permissions import AnonCreateAndUpdateOwnerOnly, AnonReadAdminCreate, \
     ProfileAuthenticatedCreateAndUpdateOwnerOnly, ProfileDeploymentAuthenticatedCreateAndUpdateOwnerOnly
 from core.serializers import CountrySerializer, RegionSerializer, CompetenceSerializer, OccupationSerializer, \
@@ -33,7 +33,8 @@ from core.serializers import CountrySerializer, RegionSerializer, CompetenceSeri
     GroupSerializer, OutbreakOptionsSerializer, ProfileCVSerializer, CustomTokenObtainPairSerializer, \
     OccupationCategorySerializer, ProfileDeploymentMiniSerializer, OutbreakTypeSerializer, \
     AcademicQualificationTypeSerializer, ProfileAcademicQualificationSerializer, AbstractDocumentSerializer, \
-    OutbreakReportSerializer, SpecializationSerializer, DetailedExperienceSerializer
+    OutbreakReportSerializer, SpecializationSerializer, DetailedExperienceSerializer, ProfileLanguageSerializer, \
+    LanguageSerializer
 from eac_rde_backend.settings import MEDIA_URL
 
 media_dir = MEDIA_URL.replace('/', '')
@@ -170,6 +171,13 @@ class CountryViewSet(viewsets.ModelViewSet):
     permission_classes = [AnonReadAdminCreate]
 
 
+class LanguageViewSet(viewsets.ModelViewSet):
+    queryset = Language.objects.all()
+    serializer_class = LanguageSerializer
+    pagination_class = None
+    permission_classes = [AnonReadAdminCreate]
+
+
 class RegionViewSet(viewsets.ModelViewSet):
     queryset = Region.objects.all()
     serializer_class = RegionSerializer
@@ -197,6 +205,13 @@ class OccupationViewSet(viewsets.ModelViewSet):
 class DetailedExperienceViewSet(viewsets.ModelViewSet):
     queryset = DetailedExperience.objects.all()
     serializer_class = DetailedExperienceSerializer
+    permission_classes = [AnonReadAdminCreate]
+    pagination_class = None
+
+
+class ProfileLanguageViewSet(viewsets.ModelViewSet):
+    queryset = ProfileLanguage.objects.all()
+    serializer_class = ProfileLanguageSerializer
     permission_classes = [AnonReadAdminCreate]
     pagination_class = None
 
@@ -561,7 +576,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(rde_profiles, many=True)
             return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class AbstractDocumentViewSet(viewsets.ModelViewSet):

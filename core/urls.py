@@ -7,11 +7,12 @@ from core.views import CountryViewSet, RegionViewSet, CompetenceViewSet, Occupat
     OccupationCategoryViewSet, fetch_stats, AcademicQualificationTypeViewSet, ProfileAcademicQualificationViewSet, \
     OutbreakTypeViewSet, send_email, confirm_email, request_password_change, complete_password_change, \
     ProfileDeploymentReportViewSet, OutbreakReportViewSet, AbstractDocumentViewSet, SpecializationViewSet, \
-    DetailedExperienceViewSet
+    DetailedExperienceViewSet, ProfileLanguageViewSet, LanguageViewSet
 
 core_router = DefaultRouter()
 core_router.register(r"country", CountryViewSet)
 core_router.register(r"region", RegionViewSet)
+core_router.register(r"language", LanguageViewSet)
 core_router.register(r"competence", CompetenceViewSet)
 core_router.register(r"occupation", OccupationViewSet)
 core_router.register(r"specialization", SpecializationViewSet)
@@ -19,6 +20,7 @@ core_router.register(r"detailed-experience", DetailedExperienceViewSet)
 core_router.register(r"academic-qualification-type", AcademicQualificationTypeViewSet)
 core_router.register(r"occupation-category", OccupationCategoryViewSet)
 core_router.register(r"profile", ProfileViewSet)
+core_router.register(r"profile-language", ProfileLanguageViewSet)
 core_router.register(r"profile-academic-qualification", ProfileAcademicQualificationViewSet)
 core_router.register(r"profile_cv", ProfileCVViewSet, basename="profile_cv")
 core_router.register(r"deployment-report", ProfileDeploymentReportViewSet, basename="deployment_report")

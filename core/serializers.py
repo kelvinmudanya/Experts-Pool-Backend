@@ -14,7 +14,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from core.models import Occupation, Country, Region, Competence, Profile, ProfileRecommendation, Outbreak, \
     ProfileDeployment, User, OccupationCategory, OutbreakType, AcademicQualificationType, ProfileAcademicQualification, \
-    AbstractDocument, DetailedExperience
+    AbstractDocument, DetailedExperience, ProfileLanguage, Language
 from eac_rde_backend.settings import EMAIL_HOST_USER, APP_URL, MEDIA_URL
 
 media_dir = MEDIA_URL.replace('/', '')
@@ -77,6 +77,12 @@ class AcademicQualificationTypeSerializer(serializers.ModelSerializer):
 
     def get_label(self, obj):
         return obj.degree_level
+
+
+class LanguageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Language
+        fields = "__all__"
 
 
 class DetailedExperienceSerializer(serializers.ModelSerializer):
@@ -148,19 +154,24 @@ class DetailedCompetenceSerializer(serializers.ModelSerializer):
                                               read_only=True)
 
     specialization_name = serializers.SerializerMethodField('get_specialization_name', read_only=True)
+    occupation_id = serializers.SerializerMethodField('get_occupation_id', read_only=True)
     occupation_name = serializers.SerializerMethodField('get_occupation_name', read_only=True)
     occupation_category_name = serializers.SerializerMethodField('get_occupation_category_name', read_only=True)
 
     class Meta:
         model = Competence
         fields = ['name', 'type', 'description', 'specialization', 'specialization_id', 'value',
-                  'label', 'specialization_name', 'occupation_name', 'occupation_category_name']
+                  'label', 'specialization_name', 'occupation_name', 'occupation_id',
+                  'occupation_category_name']
 
     def get_specialization_name(self, obj):
         return obj.specialization.name
 
     def get_occupation_name(self, obj):
         return obj.specialization.occupation.name
+
+    def get_occupation_id(self, obj):
+        return obj.specialization.occupation.id
 
     def get_occupation_category_name(self, obj):
         return obj.specialization.occupation.occupation_category.name
@@ -419,6 +430,7 @@ class ProfileCVSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     detailed_experience = serializers.SerializerMethodField('get_detailed_experience', read_only=True)
+    languages = serializers.SerializerMethodField('get_languages', read_only=True)
     occupation = OccupationSerializer(read_only=True)
     occupation_id = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Occupation.objects.all())
     region_of_residence = RegionSerializer(read_only=True)
@@ -439,6 +451,9 @@ class ProfileSerializer(serializers.ModelSerializer):
     def get_detailed_experience(self, obj):
         return DetailedExperienceSerializer(DetailedExperience.objects.filter(profile_id=obj.id).all(), many=True).data
 
+    def get_languages(self, obj):
+        return ProfileLanguageSerializer(ProfileLanguage.objects.filter(profile_id=obj.id).all(), many=True).data
+
     def get_cv_upload_status(self, obj):
         return True if obj.cv else False
 
@@ -458,8 +473,8 @@ class ProfileSerializer(serializers.ModelSerializer):
             'email', 'phone', 'user', 'id_type', 'id_number', 'region_of_residence',
             'region_of_residence_id', 'cv', 'cv_upload_status', 'active', 'available', 'note',
             'application_status', 'competencies', 'other_occupation', 'competencies_objects', 'recommendations',
-            'active_deployments', 'current_deployment', 'references', 'professional_experience', 'detailed_experience',
-            'managerial_experience', 'previous_deployment_experience'
+            'active_deployments', 'current_deployment', 'references', 'languages', 'professional_experience',
+            'detailed_experience', 'managerial_experience', 'previous_deployment_experience'
         ]
         extra_kwargs = {
             'cv': {'write_only': True}
@@ -526,6 +541,17 @@ class ProfileSerializer(serializers.ModelSerializer):
             for competence in competencies:
                 profile.competencies.add(competence)
         return profile
+
+
+class ProfileLanguageSerializer(serializers.ModelSerializer):
+    language_name = serializers.SerializerMethodField('get_language_name', read_only=True)
+
+    def get_language_name(self, obj):
+        return obj.language.name
+
+    class Meta:
+        model = ProfileLanguage
+        fields = "__all__"
 
 
 class ProfileAcademicQualificationSerializer(serializers.HyperlinkedModelSerializer):

@@ -71,7 +71,6 @@ COMPETENCE_TYPES = (
 )
 
 
-
 class OccupationCategory(TimeStampedModel):
     name = models.CharField(max_length=255)
 
@@ -201,6 +200,27 @@ class Profile(TimeStampedModel):
     def __str__(self):
         return f"RDE {self.first_name}, {self.last_name} - resides in " \
                f"{self.region_of_residence}. Application is {self.application_status}"
+
+
+class Language(TimeStampedModel):
+    name = models.CharField(max_length=255)
+
+
+LANGUAGE_PROFICIENCY_LEVEL = (
+    ('beginner', 'beginner'),
+    ('intermediate', 'intermediate'),
+    ('fluent', 'fluent'),
+    ('native_speaker', 'Native Speaker')
+)
+
+
+class ProfileLanguage(TimeStampedModel):
+    profile = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True, blank=True)
+    language = models.ForeignKey(Language, on_delete=models.SET_NULL, null=True, blank=True)
+    proficiency_level = models.CharField(max_length=255, choices=LANGUAGE_PROFICIENCY_LEVEL)
+
+    def __str__(self):
+        return f"{self.profile.first_name}'s {self.language.name}"
 
 
 DETAILED_EXPERIENCE_TYPE = (
