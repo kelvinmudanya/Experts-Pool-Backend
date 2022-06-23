@@ -42,7 +42,7 @@ class Country(models.Model):
 
 
 class Region(TimeStampedModel):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
     country = models.ForeignKey(Country, on_delete=models.CASCADE)
 
     def __str__(self):
