@@ -205,14 +205,14 @@ class OccupationViewSet(viewsets.ModelViewSet):
 class DetailedExperienceViewSet(viewsets.ModelViewSet):
     queryset = DetailedExperience.objects.all()
     serializer_class = DetailedExperienceSerializer
-    permission_classes = [AnonReadAdminCreate]
+    permission_classes = [permissions.IsAuthenticated]
     pagination_class = None
 
 
 class ProfileLanguageViewSet(viewsets.ModelViewSet):
     queryset = ProfileLanguage.objects.all()
     serializer_class = ProfileLanguageSerializer
-    permission_classes = [AnonReadAdminCreate]
+    permission_classes = [permissions.IsAuthenticated]
     pagination_class = None
 
 
