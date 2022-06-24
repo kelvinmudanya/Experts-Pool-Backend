@@ -227,7 +227,7 @@ with open('matrix1.csv', mode='r') as csv_file:
             print("failed for specialization", row["specialization"])
             continue
 
-        if row["competence"] != "":
+        if row["competencies"] != "":
             Competence.objects.create(name=row["competence"], specialization_id=specialization_id)
 
         line_count += 1
