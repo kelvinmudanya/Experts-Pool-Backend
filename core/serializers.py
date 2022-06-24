@@ -452,7 +452,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     current_deployment = serializers.SerializerMethodField('get_current_deployment', read_only=True)
 
     def get_detailed_experience(self, obj):
-        return DetailedExperienceSerializer(DetailedExperience.objects.filter(profile_id=obj.id).all(), many=True).data
+        return []
 
     def get_languages(self, obj):
         return ProfileLanguageSerializer(ProfileLanguage.objects.filter(profile_id=obj.id).all(), many=True).data
