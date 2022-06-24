@@ -99,7 +99,7 @@ class Occupation(TimeStampedModel):
 
 
 class Specialization(TimeStampedModel):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=1000)
     occupation = models.ForeignKey(Occupation, on_delete=models.CASCADE)
 
     def __str__(self):
