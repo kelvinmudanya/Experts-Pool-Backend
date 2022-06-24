@@ -222,13 +222,13 @@ with open('matrix1.csv', mode='r') as csv_file:
             line_count += 1
 
         try:
-            specialization_id = Specialization.objects.get(name=row["specialization"]).id
+            specialization_id = Specialization.objects.get(name=row["specialization"].strip()).id
         except:
             print("failed for specialization", row["specialization"])
             continue
 
         if row["competencies"] != "":
-            Competence.objects.create(name=row["competencies"], specialization_id=specialization_id)
+            Competence.objects.create(name=row["competencies"].strip(), specialization_id=specialization_id)
 
         line_count += 1
     print(f'Processed {line_count} lines.')
