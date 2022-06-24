@@ -86,7 +86,7 @@ class OccupationCategory(TimeStampedModel):
 
 class Occupation(TimeStampedModel):
     name = models.CharField(max_length=255)
-    occupation_category = models.ForeignKey(OccupationCategory, on_delete=models.SET_NULL, null=True)
+    occupation_category = models.ForeignKey(OccupationCategory, on_delete=models.CASCADE, )
 
     def __str__(self):
         return f"{self.name}"
@@ -100,7 +100,7 @@ class Occupation(TimeStampedModel):
 
 class Specialization(TimeStampedModel):
     name = models.CharField(max_length=255)
-    occupation = models.ForeignKey(Occupation, on_delete=models.SET_NULL, null=True)
+    occupation = models.ForeignKey(Occupation, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.name}"
