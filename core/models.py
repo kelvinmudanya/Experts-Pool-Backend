@@ -220,7 +220,10 @@ class ProfileLanguage(TimeStampedModel):
     proficiency_level = models.CharField(max_length=255, choices=LANGUAGE_PROFICIENCY_LEVEL)
 
     def __str__(self):
-        return f"{self.profile.first_name}'s {self.language.name}"
+        if self.language is not None and self.language is not None:
+            return f"{self.profile.first_name}'s {self.language.name}"
+        else:
+            return f"profile language"
 
 
 DETAILED_EXPERIENCE_TYPE = (

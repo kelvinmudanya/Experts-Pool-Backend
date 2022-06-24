@@ -89,7 +89,10 @@ class DetailedExperienceSerializer(serializers.ModelSerializer):
     occupation_name = serializers.SerializerMethodField('get_experience_name', read_only=True)
 
     def get_experience_name(self, obj):
-        return obj.occupation.name
+        if obj.occupation is not None:
+            return obj.occupation.name
+        else:
+            return ''
 
     class Meta:
         model = DetailedExperience
@@ -547,7 +550,10 @@ class ProfileLanguageSerializer(serializers.ModelSerializer):
     language_name = serializers.SerializerMethodField('get_language_name', read_only=True)
 
     def get_language_name(self, obj):
-        return obj.language.name
+        if obj.language is not None:
+            return obj.language.name
+        else:
+            return ''
 
     class Meta:
         model = ProfileLanguage
