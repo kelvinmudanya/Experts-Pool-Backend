@@ -667,7 +667,7 @@ class OutbreakSerializer(serializers.ModelSerializer):
         return obj.name
 
     def get_competencies_objects(self, obj):
-        return CompetenceSerializer(obj.competencies, many=True).data
+        return []
 
     def get_affected_regions_objects(self, obj):
         return RegionSerializer(obj.affected_regions, many=True).data
