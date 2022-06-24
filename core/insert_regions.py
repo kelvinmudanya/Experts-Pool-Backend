@@ -1,6 +1,9 @@
 import csv
 
-from models import Competence, Specialization
+from core.models import Competence, Specialization
+
+# exec(open('core/insert_regions.py').read())
+
 
 # kenya = Country.objects.filter(name='Kenya').first()
 # rwanda = Country.objects.filter(name='Rwanda').first()
