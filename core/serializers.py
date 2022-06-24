@@ -455,7 +455,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         return []
 
     def get_languages(self, obj):
-        return ProfileLanguageSerializer(ProfileLanguage.objects.filter(profile_id=obj.id).all(), many=True).data
+        return []
 
     def get_cv_upload_status(self, obj):
         return True if obj.cv else False
