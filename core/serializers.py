@@ -173,7 +173,6 @@ class DetailedCompetenceSerializer(serializers.ModelSerializer):
         return ''
 
     def get_occupation_name(self, obj):
-        occupation_name = ''
         try:
             occupation_name = obj.specialization.occupation.name
         except:
@@ -182,14 +181,18 @@ class DetailedCompetenceSerializer(serializers.ModelSerializer):
         return occupation_name
 
     def get_occupation_id(self, obj):
-        # if obj.specialization.occupation is not None:
-        #     return obj.specialization.occupation.id
-        return ''
+        try:
+            occupation_id = obj.specialization.occupation.id
+        except:
+            occupation_id = ''
+        return occupation_id
 
     def get_occupation_category_name(self, obj):
-        # if obj.specialization.occupation.occupation_category is not None:
-        #     return obj.specialization.occupation.occupation_category.name
-        return ''
+        try:
+            category_name = obj.specialization.occupation.occupation_category.name
+        except:
+            category_name = ''
+        return category_name
 
     def get_value(self, obj):
         return obj.id
