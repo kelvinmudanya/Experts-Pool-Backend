@@ -228,7 +228,7 @@ with open('matrix1.csv', mode='r') as csv_file:
             continue
 
         if row["competencies"] != "":
-            Competence.objects.create(name=row["competence"], specialization_id=specialization_id)
+            Competence.objects.create(name=row["competencies"], specialization_id=specialization_id)
 
         line_count += 1
     print(f'Processed {line_count} lines.')
