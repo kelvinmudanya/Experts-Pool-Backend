@@ -1,6 +1,6 @@
 import csv
 
-from core.models import Competence, Specialization
+from .models import Competence, Specialization
 
 # kenya = Country.objects.filter(name='Kenya').first()
 # rwanda = Country.objects.filter(name='Rwanda').first()
