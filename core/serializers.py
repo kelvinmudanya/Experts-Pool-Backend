@@ -168,16 +168,27 @@ class DetailedCompetenceSerializer(serializers.ModelSerializer):
                   'occupation_category_name']
 
     def get_specialization_name(self, obj):
-        return obj.specialization.name
+        if obj.specialization is not None:
+            return obj.specialization.name
+        return ''
 
     def get_occupation_name(self, obj):
-        return obj.specialization.occupation.name
+        try:
+            return obj.specialization.occupation.name
+        except():
+            return ''
 
     def get_occupation_id(self, obj):
-        return obj.specialization.occupation.id
+        try:
+            return obj.specialization.occupation.id
+        except():
+            return ''
 
     def get_occupation_category_name(self, obj):
-        return obj.specialization.occupation.occupation_category.name
+        try:
+            return obj.specialization.occupation.occupation_category.name
+        except:
+            return ''
 
     def get_value(self, obj):
         return obj.id
@@ -452,10 +463,10 @@ class ProfileSerializer(serializers.ModelSerializer):
     current_deployment = serializers.SerializerMethodField('get_current_deployment', read_only=True)
 
     def get_detailed_experience(self, obj):
-        return []
+        return DetailedExperienceSerializer(DetailedExperience.objects.filter(profile_id=obj.id).all(), many=True).data
 
     def get_languages(self, obj):
-        return []
+        return ProfileLanguageSerializer(ProfileLanguage.objects.filter(profile_id=obj.id).all(), many=True).data
 
     def get_cv_upload_status(self, obj):
         return True if obj.cv else False
@@ -490,7 +501,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         ]
 
     def get_competencies_objects(self, obj):
-        return []
+        return DetailedCompetenceSerializer(obj.competencies, many=True).data
 
     def validate(self, data):
         try:
