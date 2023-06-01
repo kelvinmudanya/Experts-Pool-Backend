@@ -1,3 +1,2 @@
-## .\venv\Scripts\activate 
-
- 
+# Experts-Pool-Backend
+Manages backend of medic experts
