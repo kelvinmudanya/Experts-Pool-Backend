@@ -357,6 +357,7 @@ class ProfileDeployment(TimeStampedModel):
         return f"Deployment for {self.profile} is deployed on outbreak {self.outbreak}"
 
 
+
 class AbstractDocument(TimeStampedModel):
     """
     Stores documents tha the EAC may need to upload that are not related to

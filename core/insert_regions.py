@@ -231,4 +231,5 @@ with open('matrix1.csv', mode='r') as csv_file:
             Competence.objects.create(name=row["competencies"].strip(), specialization_id=specialization_id)
 
         line_count += 1
+        
     print(f'Processed {line_count} lines.')

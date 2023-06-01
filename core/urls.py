@@ -43,4 +43,5 @@ url_patterns += [
     path("fetch_stats/", fetch_stats, name="fetch_stats"),
     path("get_profile_deployments/<profile_id>/", get_profile_deployments, name="get_profile_deployments"),
     path("outbreak_options/", get_outbreak_options, name="get_outbreak_options")
+
 ]

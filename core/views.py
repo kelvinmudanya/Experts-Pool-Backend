@@ -723,7 +723,6 @@ class UserViewSet(viewsets.ModelViewSet):
         else:
             return User.objects.filter(pk=auth_user.id)
 
-
 class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer

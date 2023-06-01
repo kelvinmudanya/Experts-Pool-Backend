@@ -39,13 +39,11 @@ class ProfileDeploymentAuthenticatedCreateAndUpdateOwnerOnly(permissions.BasePer
     def has_object_permission(self, request, view, obj):
         return obj.profile.user == request.user or request.user.is_staff or request.user.is_superuser
 
-
 class AnonReadAdminCreate(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
             return True
         return request.user.is_staff or request.user.is_superuser
-
 
 class AdminOnly(permissions.BasePermission):
     def has_permission(self, request, view):

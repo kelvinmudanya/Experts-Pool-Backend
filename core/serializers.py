@@ -217,7 +217,6 @@ class SpecializationSerializer(serializers.ModelSerializer):
     def get_label(self, obj):
         return obj.name
 
-
 class OccupationCategorySerializer(serializers.ModelSerializer):
     value = serializers.SerializerMethodField('get_value',
                                               read_only=True)

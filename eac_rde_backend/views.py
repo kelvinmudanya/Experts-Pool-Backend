@@ -10,4 +10,5 @@ def confirm_email_html(request, username=None, otp=None):
     user.is_active=True
     user.otp_used=True
     user.save()
+    
     return HttpResponse("Email Verified Successfully")
